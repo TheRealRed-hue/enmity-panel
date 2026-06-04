@@ -378,10 +378,30 @@ function MemberRow({ member, onRefresh }: { member: StaffRow; onRefresh: () => v
   }, [menuOpen])
 
   async function handleSuspend() {
+    const newStatus = member.status === 'suspended' ? 'active' : 'suspended'
+
     await supabase
       .from('staff_members')
-      .update({ status: member.status === 'suspended' ? 'active' : 'suspended' })
+      .update({ status: newStatus })
       .eq('id', member.id)
+
+    // If we're suspending the user, also mark them offline and record a logout
+    if (newStatus === 'suspended') {
+      try {
+        await fetch('/api/auth/offline', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            discordId: member.discord_id,
+            username: member.username,
+            dashboardRole: member.dashboard_role,
+          }),
+        })
+      } catch (err) {
+        // ignore failures — UI will refresh anyway
+      }
+    }
+
     setMenuOpen(false)
     onRefresh()
   }
