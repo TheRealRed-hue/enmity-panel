@@ -1,15 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase'
 
-export async function GET(req: NextRequest) {
-  const authHeader = req.headers.get('authorization')
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
+export async function POST() {
   try {
     const admin = getSupabaseAdmin()
-    // 2 minutes tolerance — heartbeat is every 30s so this gives plenty of room
     const twoMinutesAgo = new Date(Date.now() - 120_000).toISOString()
 
     const { data: offlineMembers } = await admin
