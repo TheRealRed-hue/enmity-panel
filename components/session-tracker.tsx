@@ -28,10 +28,6 @@ export function SessionTracker() {
       })
     }
 
-    async function checkOffline() {
-      await fetch('/api/auth/check-offline', { method: 'POST' })
-    }
-
     function setOffline() {
       navigator.sendBeacon(
         '/api/auth/offline',
@@ -60,22 +56,17 @@ export function SessionTracker() {
       }
     }
 
-    // Start online + heartbeat
     setOnline()
     sendHeartbeat()
 
     // Heartbeat every 30 seconds
     const heartbeatInterval = setInterval(sendHeartbeat, 30_000)
 
-    // Check for offline members every 45 seconds
-    const checkInterval = setInterval(checkOffline, 45_000)
-
     document.addEventListener('visibilitychange', handleVisibilityChange)
     window.addEventListener('beforeunload', setOffline)
 
     return () => {
       clearInterval(heartbeatInterval)
-      clearInterval(checkInterval)
       document.removeEventListener('visibilitychange', handleVisibilityChange)
       window.removeEventListener('beforeunload', setOffline)
     }

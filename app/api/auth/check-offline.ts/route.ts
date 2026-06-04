@@ -1,27 +1,30 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase'
 
-export async function POST() {
+export async function GET(req: NextRequest) {
+  // Only allow Vercel cron calls
+  const authHeader = req.headers.get('authorization')
+  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
   try {
     const admin = getSupabaseAdmin()
     const oneMinuteAgo = new Date(Date.now() - 60_000).toISOString()
 
-    // Get members who haven't sent a heartbeat in 1 minute
     const { data: offlineMembers } = await admin
       .from('staff_members')
       .select('discord_id, username, dashboard_role')
       .eq('online', true)
-      .or(`last_seen.lt.${oneMinuteAgo},last_seen.is.null`)
+      .lt('last_seen', oneMinuteAgo)
 
     if (offlineMembers && offlineMembers.length > 0) {
-      // Mark them offline
       await admin
         .from('staff_members')
         .update({ online: false })
-        .or(`last_seen.lt.${oneMinuteAgo},last_seen.is.null`)
+        .lt('last_seen', oneMinuteAgo)
         .eq('online', true)
 
-      // Log each one as logout
       await admin
         .from('access_logs')
         .insert(

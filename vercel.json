@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/auth/check-offline",
+      "schedule": "* * * * *"
+    }
+  ]
+}
