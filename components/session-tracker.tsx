@@ -20,27 +20,38 @@ export function SessionTracker() {
       })
     }
 
-    async function setOffline() {
-      await fetch('/api/auth/offline', {
+    async function sendHeartbeat() {
+      await fetch('/api/auth/heartbeat', {
         method: 'POST',
-        keepalive: true,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          discordId: session!.discordId,
-          username: session!.username,
-          dashboardRole: session!.dashboardRole,
-        }),
+        body: JSON.stringify({ discordId: session!.discordId }),
       })
+    }
+
+    async function checkOffline() {
+      await fetch('/api/auth/check-offline', { method: 'POST' })
+    }
+
+    function setOffline() {
+      navigator.sendBeacon(
+        '/api/auth/offline',
+        new Blob(
+          [JSON.stringify({
+            discordId: session!.discordId,
+            username: session!.username,
+            dashboardRole: session!.dashboardRole,
+          })],
+          { type: 'application/json' }
+        )
+      )
     }
 
     let offlineTimer: ReturnType<typeof setTimeout> | null = null
 
     function handleVisibilityChange() {
       if (document.visibilityState === 'hidden') {
-        // Wait 10 seconds before marking offline — if they come back (reload) it cancels
-        offlineTimer = setTimeout(setOffline, 10_000)
+        offlineTimer = setTimeout(setOffline, 8_000)
       } else {
-        // They came back — cancel the offline timer and mark online
         if (offlineTimer) {
           clearTimeout(offlineTimer)
           offlineTimer = null
@@ -49,9 +60,25 @@ export function SessionTracker() {
       }
     }
 
+    // Start online + heartbeat
     setOnline()
+    sendHeartbeat()
+
+    // Heartbeat every 30 seconds
+    const heartbeatInterval = setInterval(sendHeartbeat, 30_000)
+
+    // Check for offline members every 45 seconds
+    const checkInterval = setInterval(checkOffline, 45_000)
+
     document.addEventListener('visibilitychange', handleVisibilityChange)
-    return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
+    window.addEventListener('beforeunload', setOffline)
+
+    return () => {
+      clearInterval(heartbeatInterval)
+      clearInterval(checkInterval)
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+      window.removeEventListener('beforeunload', setOffline)
+    }
   }, [])
 
   return null
