@@ -46,7 +46,21 @@ export function Sidebar() {
   }, [])
 
   // PRECISA ESTAR AQUI DENTRO ↓
-  function handleLogout() {
+  async function handleLogout() {
+    const session = getClientSession()
+
+    if (session) {
+      await fetch('/api/auth/offline', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          discordId: session.discordId,
+          username: session.username,
+          dashboardRole: session.dashboardRole,
+        }),
+      })
+    }
+
     clearSession()
     window.location.replace('/login')
   }
