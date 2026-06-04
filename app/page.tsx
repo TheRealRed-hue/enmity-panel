@@ -11,10 +11,15 @@ import {
   BarChart3, ScrollText, Ticket,
 } from 'lucide-react'
 import { subscribeStats, type ServerStats } from '@/lib/server-stats'
+import {
+  LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
+} from 'recharts'
 
 export default function OverviewPage() {
   const [stats, setStats] = useState<ServerStats | null>(null)
   const [loading, setLoading] = useState(true)
+  const [snapshots, setSnapshots] = useState<any[] | null>(null)
+  const [loadingSnapshots, setLoadingSnapshots] = useState(true)
 
   useEffect(() => {
     const unsub = subscribeStats((s) => {
@@ -22,6 +27,32 @@ export default function OverviewPage() {
       setLoading(false)
     })
     return unsub
+  }, [])
+
+  useEffect(() => {
+    let mounted = true
+    async function fetchSnapshots() {
+      setLoadingSnapshots(true)
+      try {
+        const res = await fetch('/api/member-snapshots')
+        if (!res.ok) throw new Error('failed')
+        const data = await res.json()
+        if (!mounted) return
+        // map recorded_at -> formatted date
+        const mapped = (data ?? []).map((r: any) => ({
+          ...r,
+          date: new Date(r.recorded_at).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit' }),
+        }))
+        setSnapshots(mapped)
+      } catch (err) {
+        setSnapshots([])
+      } finally {
+        setLoadingSnapshots(false)
+      }
+    }
+
+    fetchSnapshots()
+    return () => { mounted = false }
   }, [])
 
   return (
@@ -83,12 +114,29 @@ export default function OverviewPage() {
         {/* Charts placeholder */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
           <Section title="Member Growth">
-            <div className="rounded-lg bg-card border border-border">
-              <EmptyState
-                icon={BarChart3}
-                title="Waiting for data"
-                description="Connect historical data to display the growth chart."
-              />
+            <div className="rounded-lg bg-card border border-border p-4 h-64">
+              {loadingSnapshots || !snapshots ? (
+                <div className="flex items-center justify-center h-full">
+                  <EmptyState
+                    icon={BarChart3}
+                    title={loadingSnapshots ? 'Loading...' : 'Waiting for data'}
+                    description="Connect historical data to display the growth chart."
+                  />
+                </div>
+              ) : (
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={snapshots}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                    <XAxis dataKey="date" tick={{ fill: '#6b7280', fontSize: 10 }} />
+                    <YAxis tick={{ fill: '#6b7280', fontSize: 10 }} width={45} />
+                    <Tooltip />
+                    <Legend wrapperStyle={{ fontSize: 11 }} />
+                    <Line type="monotone" dataKey="total_members" stroke="#7c6ef7" strokeWidth={2} dot={false} name="Total Members" />
+                    <Line type="monotone" dataKey="joined_today" stroke="#22c55e" strokeWidth={1.5} dot={false} name="Joins (hour)" />
+                    <Line type="monotone" dataKey="left_today" stroke="#e05151" strokeWidth={1.5} dot={false} name="Leaves (hour)" />
+                  </LineChart>
+                </ResponsiveContainer>
+              )}
             </div>
           </Section>
 
