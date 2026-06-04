@@ -1,7 +1,8 @@
 'use client'
 
 import { useEffect } from 'react'
-import { getClientSession } from '@/lib/session'
+import { supabase } from '@/lib/supabase'
+import { getClientSession, clearSession } from '@/lib/session'
 
 export function SessionTracker() {
   useEffect(() => {
@@ -35,12 +36,31 @@ export function SessionTracker() {
     setOnline()
     sendHeartbeat()
 
+    // Realtime subscription: force logout if this member is suspended or marked offline
+    const channel = supabase
+      .channel(`presence-staff-${session.discordId}`)
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'staff_members', filter: `discord_id=eq.${session.discordId}` },
+        (payload: any) => {
+          const newRow = payload.new
+          if (newRow?.status === 'suspended' || newRow?.online === false) {
+            clearSession()
+            window.location.replace('/login')
+          }
+        }
+      )
+      .subscribe()
+
     const heartbeatInterval = setInterval(sendHeartbeat, 30_000)
     const checkInterval = setInterval(checkAndMarkOffline, 60_000)
 
     return () => {
       clearInterval(heartbeatInterval)
       clearInterval(checkInterval)
+      try {
+        channel.unsubscribe()
+      } catch {}
     }
   }, [])
 
