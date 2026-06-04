@@ -6,7 +6,7 @@ import { Header } from '@/components/header'
 import { PageShell, Section } from '@/components/ui/page-shell'
 import { EmptyState } from '@/components/ui/empty-state'
 import {
-  Search, Download, ScrollText, LogIn, LogOut, ChevronLeft, ChevronRight,
+  Search, Download, ScrollText, LogIn, LogOut, ChevronLeft, ChevronRight, RefreshCw,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { supabase } from '@/lib/supabase'
@@ -17,7 +17,6 @@ interface AccessLog {
   username: string
   action: string
   dashboard_role: string
-  ip: string | null
   created_at: string
 }
 
@@ -27,7 +26,7 @@ export default function LogsPage() {
   const [logs, setLogs] = useState<AccessLog[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
-  const [filter, setFilter] = useState<'all' | 'login' | 'logout'>('all')
+  const [filter, setFilter] = useState<'all' | 'login' | 'logout' | 'reconnect'>('all')
   const [page, setPage] = useState(1)
 
   useEffect(() => {
@@ -42,7 +41,6 @@ export default function LogsPage() {
 
     fetchLogs()
 
-    // Realtime updates
     const channel = supabase
       .channel('access_logs')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'access_logs' }, () => {
@@ -64,6 +62,13 @@ export default function LogsPage() {
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE))
   const paginated = filtered.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE)
+
+  const filterLabels = {
+    all: 'All',
+    login: 'Logins',
+    logout: 'Logouts',
+    reconnect: 'Reconnects',
+  }
 
   return (
     <DashboardLayout>
@@ -93,18 +98,18 @@ export default function LogsPage() {
             </div>
 
             <div className="flex gap-1.5">
-              {(['all', 'login', 'logout'] as const).map((f) => (
+              {(['all', 'login', 'logout', 'reconnect'] as const).map((f) => (
                 <button
                   key={f}
                   onClick={() => { setFilter(f); setPage(1) }}
                   className={cn(
-                    'px-3 py-2 rounded-md text-xs font-medium transition-colors capitalize',
+                    'px-3 py-2 rounded-md text-xs font-medium transition-colors',
                     filter === f
                       ? 'bg-primary/20 text-primary border border-primary/30'
                       : 'bg-secondary/60 text-muted-foreground hover:text-foreground border border-border'
                   )}
                 >
-                  {f === 'all' ? 'All' : f === 'login' ? 'Logins' : 'Logouts'}
+                  {filterLabels[f]}
                 </button>
               ))}
             </div>
@@ -113,11 +118,10 @@ export default function LogsPage() {
 
         <Section>
           <div className="rounded-lg bg-card border border-border overflow-hidden">
-            <div className="hidden md:grid grid-cols-[2fr_1.5fr_1fr_1fr_1.5fr] gap-4 px-4 py-2.5 border-b border-border bg-secondary/20 text-xs font-medium text-muted-foreground uppercase tracking-wide">
+            <div className="hidden md:grid grid-cols-[2fr_1.5fr_1fr_1.5fr] gap-4 px-4 py-2.5 border-b border-border bg-secondary/20 text-xs font-medium text-muted-foreground uppercase tracking-wide">
               <span>User</span>
               <span>Role</span>
               <span>Action</span>
-              <span>IP</span>
               <span>Date</span>
             </div>
 
@@ -138,14 +142,14 @@ export default function LogsPage() {
             ) : (
               <ul className="divide-y divide-border">
                 {paginated.map((log) => (
-                  <li key={log.id} className="grid grid-cols-1 md:grid-cols-[2fr_1.5fr_1fr_1fr_1.5fr] gap-2 md:gap-4 px-4 py-3 hover:bg-secondary/20 transition-colors items-center">
+                  <li key={log.id} className="grid grid-cols-1 md:grid-cols-[2fr_1.5fr_1fr_1.5fr] gap-2 md:gap-4 px-4 py-3 hover:bg-secondary/20 transition-colors items-center">
                     <div>
                       <p className="text-sm font-medium text-foreground">{log.username}</p>
                       <p className="text-xs text-muted-foreground">{log.discord_id}</p>
                     </div>
 
                     <span className="text-xs text-muted-foreground capitalize">
-                      {log.dashboard_role.replace('_', ' ')}
+                      {log.dashboard_role.replace(/_/g, ' ')}
                     </span>
 
                     <div className="flex items-center gap-1.5">
@@ -154,6 +158,11 @@ export default function LogsPage() {
                           <LogIn size={13} className="text-success-green" />
                           <span className="text-xs text-success-green font-medium">Login</span>
                         </>
+                      ) : log.action === 'reconnect' ? (
+                        <>
+                          <RefreshCw size={13} className="text-primary" />
+                          <span className="text-xs text-primary font-medium">Reconnect</span>
+                        </>
                       ) : (
                         <>
                           <LogOut size={13} className="text-warning-amber" />
@@ -161,10 +170,6 @@ export default function LogsPage() {
                         </>
                       )}
                     </div>
-
-                    <span className="text-xs text-muted-foreground">
-                      {log.ip ?? '—'}
-                    </span>
 
                     <span className="text-xs text-muted-foreground">
                       {new Date(log.created_at).toLocaleString('en-US', {
