@@ -96,7 +96,6 @@ export async function GET(req: NextRequest) {
         username: user.username,
         action: 'login',
         dashboard_role: dashboardRole,
-        ip: req.headers.get('x-forwarded-for') ?? req.headers.get('x-real-ip') ?? 'unknown',
       })
 
     const session = {

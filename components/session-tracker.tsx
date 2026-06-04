@@ -5,6 +5,21 @@ import { getClientSession } from '@/lib/session'
 
 export function SessionTracker() {
   useEffect(() => {
+    // Mark as online when page loads/reloads
+    async function setOnline() {
+      const session = getClientSession()
+      if (!session) return
+      await fetch('/api/auth/online', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          discordId: session.discordId,
+          username: session.username,
+          dashboardRole: session.dashboardRole,
+        }),
+      })
+    }
+
     async function setOffline() {
       const session = getClientSession()
       if (!session) return
@@ -20,6 +35,7 @@ export function SessionTracker() {
       })
     }
 
+    setOnline()
     window.addEventListener('beforeunload', setOffline)
     return () => window.removeEventListener('beforeunload', setOffline)
   }, [])
