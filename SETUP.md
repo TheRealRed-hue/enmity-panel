@@ -1,4 +1,4 @@
-# Deepwoken Dashboard — Setup Guide
+# Enmity Exe Dashboard — Setup Guide
 
 ## Quick Start
 
@@ -12,6 +12,7 @@ npm run dev
 ## Discord OAuth2 Setup
 
 ### 1. Create a Discord Application
+
 1. Go to https://discord.com/developers/applications
 2. Click **New Application** → give it a name
 3. Go to **OAuth2 → General**:
@@ -20,6 +21,7 @@ npm run dev
 4. Go to **Bot** → **Add Bot** → copy the **Bot Token**
 
 ### 2. Configure Environment Variables
+
 Copy `.env.example` to `.env.local` and fill in the values:
 
 ```env
@@ -34,22 +36,24 @@ NEXT_PUBLIC_DISCORD_REDIRECT_URI=http://localhost:3000/api/auth/discord-callback
 ```
 
 ### 3. Map Your Discord Roles to Dashboard Roles
+
 Edit `lib/constants.ts` → `DISCORD_ROLE_IDS`:
 
 ```ts
 export const DISCORD_ROLE_IDS: Record<DashboardRole, string> = {
-  owner:            '111111111111111111',  // Right-click role → Copy ID
-  administrator:    '222222222222222222',
-  head_moderator:   '333333333333333333',
-  senior_moderator: '444444444444444444',
-  moderator:        '555555555555555555',
-  trial_moderator:  '666666666666666666',
-}
+  owner: "111111111111111111", // Right-click role → Copy ID
+  administrator: "222222222222222222",
+  head_moderator: "333333333333333333",
+  senior_moderator: "444444444444444444",
+  moderator: "555555555555555555",
+  trial_moderator: "666666666666666666",
+};
 ```
 
 > **Note:** To copy Role IDs, enable Developer Mode in Discord (User Settings → Advanced → Developer Mode), then right-click a role.
 
 ### 4. Invite the Bot to Your Server
+
 The bot needs to be in the server so it can check member roles.
 
 Bot permissions needed: **Server Members Intent** (enabled in Bot settings)

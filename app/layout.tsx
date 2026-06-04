@@ -7,9 +7,9 @@ const geistSans = Geist({ subsets: ['latin'], variable: '--font-geist-sans' })
 const geistMono = Geist_Mono({ subsets: ['latin'], variable: '--font-geist-mono' })
 
 export const metadata: Metadata = {
-  title: 'Deepwoken Moderation Dashboard | Japan Arc',
-  description: 'Professional moderation dashboard for the Deepwoken Discord server — Japan Arc',
-  keywords: ['Deepwoken', 'Discord', 'Moderation', 'Dashboard', 'Japan Arc'],
+  title: 'Enmity Exe Moderation Dashboard',
+  description: 'Professional moderation dashboard for the Enmity Exe Discord server',
+  keywords: ['Enmity Exe', 'Discord', 'Moderation', 'Dashboard'],
 }
 
 export const viewport: Viewport = {

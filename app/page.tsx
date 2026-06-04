@@ -28,7 +28,7 @@ export default function OverviewPage() {
     <DashboardLayout>
       <Header
         title="Overview"
-        subtitle="Moderation Dashboard — Deepwoken Japan Arc"
+        subtitle="Moderation Dashboard — Enmity Exe"
       />
 
       <PageShell>

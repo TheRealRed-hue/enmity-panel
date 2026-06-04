@@ -15,7 +15,7 @@ const OAUTH_URL =
 
 const errorMessages: Record<string, string> = {
   access_denied: 'Access was denied. Make sure to authorize the app.',
-  not_in_server: 'You are not a member of the Deepwoken Japan Arc server.',
+  not_in_server: 'You are not a member of the Enmity Exe server.',
   no_permission: 'Your account does not hold a recognized staff role in the server.',
   server_error: 'An unexpected error occurred. Please try again.',
 }
@@ -45,7 +45,7 @@ function LoginContent() {
           <div className="w-16 h-16 rounded-2xl bg-primary/15 flex items-center justify-center border border-primary/20 mb-4">
             <ToriiIcon className="w-10 h-10 text-primary" />
           </div>
-          <h1 className="text-xl font-bold text-foreground">Deepwoken Dashboard</h1>
+          <h1 className="text-xl font-bold text-foreground">Enmity Exe Dashboard</h1>
           <p className="text-sm text-muted-foreground mt-1">Enmity Exe - Staff Portal</p>
         </div>
 
@@ -58,8 +58,8 @@ function LoginContent() {
         <div className="bg-card border border-border rounded-xl p-6 space-y-4">
           <div>
             <h2 className="text-sm font-semibold text-foreground">Sign in with Discord</h2>
-            <p className="text-xs text-muted-foreground mt-1">
-              Access is restricted to staff members of the Japan Arc server. Your permission level is automatically assigned based on your Discord roles.
+              <p className="text-xs text-muted-foreground mt-1">
+              Access is restricted to staff members of the Enmity Exe server. Your permission level is automatically assigned based on your Discord roles.
             </p>
           </div>
 
@@ -74,7 +74,7 @@ function LoginContent() {
           </a>
 
           <p className="text-[11px] text-muted-foreground text-center">
-            Only users with a staff role in the Deepwoken Japan Arc server will be granted access.
+            Only users with a staff role in the Enmity Exe server will be granted access.
           </p>
         </div>
 

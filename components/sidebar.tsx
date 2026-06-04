@@ -76,13 +76,13 @@ export function Sidebar() {
       {/* Logo */}
       <div className="flex h-14 items-center justify-between px-3 border-b border-border shrink-0">
         {!collapsed && (
-          <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-md bg-primary/15 flex items-center justify-center border border-primary/20">
               <ToriiIcon className="w-5 h-5 text-primary" />
             </div>
             <div>
-              <p className="text-sm font-semibold text-foreground leading-none">Deepwoken</p>
-              <p className="text-[11px] text-muted-foreground mt-0.5">Japan Arc</p>
+              <p className="text-sm font-semibold text-foreground leading-none">Enmity Exe</p>
+              <p className="text-[11px] text-muted-foreground mt-0.5">Enmity Exe</p>
             </div>
           </div>
         )}
