@@ -11,9 +11,9 @@ export const metadata: Metadata = {
   description: 'Professional moderation dashboard for the Enmity Exe Discord server',
   keywords: ['Enmity Exe', 'Discord', 'Moderation', 'Dashboard'],
   icons: {
-    icon: '/logo.png',
-    shortcut: '/logo.png',
-    apple: '/logo.png',
+    icon: '/icon.svg',
+    shortcut: '/icon.svg',
+    apple: '/icon.svg',
   },
 }
 
