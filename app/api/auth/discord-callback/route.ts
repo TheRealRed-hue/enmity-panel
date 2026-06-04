@@ -49,7 +49,6 @@ export async function GET(req: NextRequest) {
     const bodyPayload = {
       message: `discordoauth.${user.id}.${process.env.BOT_API_SECRET!}`
     }
-    console.log('Sending to bot:', JSON.stringify(bodyPayload))
 
     const botRes = await fetch(process.env.BOT_API_URL!, {
       method: 'POST',
@@ -57,20 +56,14 @@ export async function GET(req: NextRequest) {
       body: JSON.stringify(bodyPayload),
     })
 
-    console.log('Bot status:', botRes.status)
-
     if (!botRes.ok) {
-      console.log('Bot returned non-ok status:', botRes.status)
       return NextResponse.redirect(new URL('/login?error=not_in_server', req.url))
     }
 
     const botData = await botRes.json()
-    console.log('Bot response:', botData)
-
     const dashboardRole = botData.message as DashboardRole
 
     if (!dashboardRole || !VALID_ROLES.includes(dashboardRole)) {
-      console.log('No valid role found:', dashboardRole)
       return NextResponse.redirect(new URL('/login?error=no_permission', req.url))
     }
 
@@ -78,8 +71,10 @@ export async function GET(req: NextRequest) {
       ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`
       : null
 
-    // Save/update member in Supabase
-    await getSupabaseAdmin()
+    const admin = getSupabaseAdmin()
+
+    // Update staff member
+    await admin
       .from('staff_members')
       .upsert({
         discord_id: user.id,
@@ -92,6 +87,17 @@ export async function GET(req: NextRequest) {
         online: true,
         last_login_at: new Date().toISOString(),
       }, { onConflict: 'discord_id' })
+
+    // Save login log
+    await admin
+      .from('access_logs')
+      .insert({
+        discord_id: user.id,
+        username: user.username,
+        action: 'login',
+        dashboard_role: dashboardRole,
+        ip: req.headers.get('x-forwarded-for') ?? req.headers.get('x-real-ip') ?? 'unknown',
+      })
 
     const session = {
       discordId: user.id,

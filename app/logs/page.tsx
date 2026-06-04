@@ -1,67 +1,65 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { DashboardLayout } from '@/components/dashboard-layout'
 import { Header } from '@/components/header'
 import { PageShell, Section } from '@/components/ui/page-shell'
 import { EmptyState } from '@/components/ui/empty-state'
-import { SeverityBadge } from '@/components/ui/severity-badge'
 import {
-  Search,
-  Filter,
-  Download,
-  Ban,
-  UserMinus,
-  Clock,
-  MessageSquareWarning,
-  Shield,
-  Hash,
-  Trash2,
-  UserCog,
-  ChevronLeft,
-  ChevronRight,
-  ScrollText,
+  Search, Download, ScrollText, LogIn, LogOut, ChevronLeft, ChevronRight,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { ACTION_TYPE_LABELS } from '@/lib/constants'
-import type { ModerationActionType, ModerationLog } from '@/types'
+import { supabase } from '@/lib/supabase'
 
-type FilterType = 'all' | ModerationActionType
-
-interface FilterOption {
-  value: FilterType
-  label: string
-  icon: React.ElementType
+interface AccessLog {
+  id: string
+  discord_id: string
+  username: string
+  action: string
+  dashboard_role: string
+  ip: string | null
+  created_at: string
 }
 
-const filterOptions: FilterOption[] = [
-  { value: 'all', label: 'All', icon: Filter },
-  { value: 'ban', label: 'Bans', icon: Ban },
-  { value: 'kick', label: 'Kicks', icon: UserMinus },
-  { value: 'timeout', label: 'Timeouts', icon: Clock },
-  { value: 'warning', label: 'Warnings', icon: MessageSquareWarning },
-  { value: 'role_add', label: 'Roles', icon: UserCog },
-  { value: 'nickname', label: 'Nicknames', icon: Hash },
-  { value: 'blacklist', label: 'Blacklist', icon: Shield },
-  { value: 'message_delete', label: 'Messages', icon: Trash2 },
-]
-
-const logs: ModerationLog[] = []
 const ITEMS_PER_PAGE = 20
 
 export default function LogsPage() {
+  const [logs, setLogs] = useState<AccessLog[]>([])
+  const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
-  const [activeFilter, setActiveFilter] = useState<FilterType>('all')
+  const [filter, setFilter] = useState<'all' | 'login' | 'logout'>('all')
   const [page, setPage] = useState(1)
 
+  useEffect(() => {
+    async function fetchLogs() {
+      const { data } = await supabase
+        .from('access_logs')
+        .select('*')
+        .order('created_at', { ascending: false })
+      setLogs(data ?? [])
+      setLoading(false)
+    }
+
+    fetchLogs()
+
+    // Realtime updates
+    const channel = supabase
+      .channel('access_logs')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'access_logs' }, () => {
+        fetchLogs()
+      })
+      .subscribe()
+
+    return () => { supabase.removeChannel(channel) }
+  }, [])
+
   const filtered = logs.filter((log) => {
-    const matchesType = activeFilter === 'all' || log.type === activeFilter
+    const matchesFilter = filter === 'all' || log.action === filter
     const matchesSearch =
       !search ||
-      log.targetUsername.toLowerCase().includes(search.toLowerCase()) ||
-      log.moderatorUsername.toLowerCase().includes(search.toLowerCase()) ||
-      log.reason.toLowerCase().includes(search.toLowerCase())
-    return matchesType && matchesSearch
+      log.username.toLowerCase().includes(search.toLowerCase()) ||
+      log.discord_id.includes(search)
+    return matchesFilter && matchesSearch
   })
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE))
@@ -70,8 +68,8 @@ export default function LogsPage() {
   return (
     <DashboardLayout>
       <Header
-        title="Moderation Logs"
-        subtitle="Full history of server moderation actions"
+        title="Logs"
+        subtitle="Dashboard access history"
         actions={
           <button className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-md bg-secondary hover:bg-secondary/80 transition-colors text-muted-foreground hover:text-foreground border border-border">
             <Download size={13} />
@@ -82,32 +80,31 @@ export default function LogsPage() {
 
       <PageShell>
         <Section>
-          <div className="space-y-3">
-            <div className="relative">
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <input
                 type="text"
-                placeholder="Search by user, moderator, or reason..."
+                placeholder="Search by username or Discord ID..."
                 value={search}
                 onChange={(e) => { setSearch(e.target.value); setPage(1) }}
                 className="w-full pl-9 pr-4 py-2 text-sm bg-secondary/50 border border-border rounded-md text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40"
               />
             </div>
 
-            <div className="flex flex-wrap gap-1.5">
-              {filterOptions.map((opt) => (
+            <div className="flex gap-1.5">
+              {(['all', 'login', 'logout'] as const).map((f) => (
                 <button
-                  key={opt.value}
-                  onClick={() => { setActiveFilter(opt.value); setPage(1) }}
+                  key={f}
+                  onClick={() => { setFilter(f); setPage(1) }}
                   className={cn(
-                    'flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-colors',
-                    activeFilter === opt.value
+                    'px-3 py-2 rounded-md text-xs font-medium transition-colors capitalize',
+                    filter === f
                       ? 'bg-primary/20 text-primary border border-primary/30'
                       : 'bg-secondary/60 text-muted-foreground hover:text-foreground border border-border'
                   )}
                 >
-                  <opt.icon size={12} />
-                  {opt.label}
+                  {f === 'all' ? 'All' : f === 'login' ? 'Logins' : 'Logouts'}
                 </button>
               ))}
             </div>
@@ -116,53 +113,91 @@ export default function LogsPage() {
 
         <Section>
           <div className="rounded-lg bg-card border border-border overflow-hidden">
-            <div className="hidden md:grid grid-cols-[2fr_1.5fr_1fr_2fr_1fr_100px] gap-4 px-4 py-2.5 border-b border-border bg-secondary/20 text-xs font-medium text-muted-foreground uppercase tracking-wide">
-              <span>Target User</span>
-              <span>Moderator</span>
-              <span>Type</span>
-              <span>Reason</span>
-              <span>Severity</span>
+            <div className="hidden md:grid grid-cols-[2fr_1.5fr_1fr_1fr_1.5fr] gap-4 px-4 py-2.5 border-b border-border bg-secondary/20 text-xs font-medium text-muted-foreground uppercase tracking-wide">
+              <span>User</span>
+              <span>Role</span>
+              <span>Action</span>
+              <span>IP</span>
               <span>Date</span>
             </div>
 
-            {paginated.length === 0 ? (
+            {loading ? (
+              <div className="flex items-center justify-center py-12">
+                <p className="text-xs text-muted-foreground">Loading...</p>
+              </div>
+            ) : paginated.length === 0 ? (
               <EmptyState
                 icon={ScrollText}
                 title="No logs found"
                 description={
                   logs.length === 0
-                    ? 'Moderation logs will appear here after Discord Bot integration.'
+                    ? 'Access logs will appear here when staff members sign in.'
                     : 'No logs match the applied filters.'
                 }
               />
             ) : (
               <ul className="divide-y divide-border">
                 {paginated.map((log) => (
-                  <LogRow key={log.id} log={log} />
+                  <li key={log.id} className="grid grid-cols-1 md:grid-cols-[2fr_1.5fr_1fr_1fr_1.5fr] gap-2 md:gap-4 px-4 py-3 hover:bg-secondary/20 transition-colors items-center">
+                    <div>
+                      <p className="text-sm font-medium text-foreground">{log.username}</p>
+                      <p className="text-xs text-muted-foreground">{log.discord_id}</p>
+                    </div>
+
+                    <span className="text-xs text-muted-foreground capitalize">
+                      {log.dashboard_role.replace('_', ' ')}
+                    </span>
+
+                    <div className="flex items-center gap-1.5">
+                      {log.action === 'login' ? (
+                        <>
+                          <LogIn size={13} className="text-success-green" />
+                          <span className="text-xs text-success-green font-medium">Login</span>
+                        </>
+                      ) : (
+                        <>
+                          <LogOut size={13} className="text-warning-amber" />
+                          <span className="text-xs text-warning-amber font-medium">Logout</span>
+                        </>
+                      )}
+                    </div>
+
+                    <span className="text-xs text-muted-foreground">
+                      {log.ip ?? '—'}
+                    </span>
+
+                    <span className="text-xs text-muted-foreground">
+                      {new Date(log.created_at).toLocaleString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit',
+                      })}
+                    </span>
+                  </li>
                 ))}
               </ul>
             )}
 
-            {filtered.length > 0 && (
+            {filtered.length > ITEMS_PER_PAGE && (
               <div className="flex items-center justify-between px-4 py-3 border-t border-border">
                 <span className="text-xs text-muted-foreground">
-                  {filtered.length} result{filtered.length !== 1 ? 's' : ''}
+                  {filtered.length} entries
                 </span>
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => setPage((p) => Math.max(1, p - 1))}
                     disabled={page === 1}
-                    className="p-1.5 rounded-md hover:bg-secondary transition-colors text-muted-foreground disabled:opacity-40 disabled:cursor-not-allowed"
+                    className="p-1.5 rounded-md hover:bg-secondary transition-colors text-muted-foreground disabled:opacity-40"
                   >
                     <ChevronLeft size={14} />
                   </button>
-                  <span className="text-xs text-muted-foreground">
-                    {page} / {totalPages}
-                  </span>
+                  <span className="text-xs text-muted-foreground">{page} / {totalPages}</span>
                   <button
                     onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                     disabled={page === totalPages}
-                    className="p-1.5 rounded-md hover:bg-secondary transition-colors text-muted-foreground disabled:opacity-40 disabled:cursor-not-allowed"
+                    className="p-1.5 rounded-md hover:bg-secondary transition-colors text-muted-foreground disabled:opacity-40"
                   >
                     <ChevronRight size={14} />
                   </button>
@@ -173,25 +208,5 @@ export default function LogsPage() {
         </Section>
       </PageShell>
     </DashboardLayout>
-  )
-}
-
-function LogRow({ log }: { log: ModerationLog }) {
-  return (
-    <li className="grid grid-cols-1 md:grid-cols-[2fr_1.5fr_1fr_2fr_1fr_100px] gap-2 md:gap-4 px-4 py-3 text-sm hover:bg-secondary/20 transition-colors">
-      <div>
-        <p className="font-medium text-foreground truncate">{log.targetUsername}</p>
-        <p className="text-xs text-muted-foreground">{log.targetId}</p>
-      </div>
-      <div className="text-muted-foreground truncate">{log.moderatorUsername}</div>
-      <div className="text-foreground font-medium">
-        {ACTION_TYPE_LABELS[log.type] ?? log.type}
-      </div>
-      <div className="text-muted-foreground truncate">{log.reason}</div>
-      <SeverityBadge severity={log.severity} />
-      <div className="text-xs text-muted-foreground">
-        {new Date(log.createdAt).toLocaleString('en-US', { dateStyle: 'short', timeStyle: 'short' })}
-      </div>
-    </li>
   )
 }
