@@ -3,7 +3,7 @@ import { getSupabaseAdmin } from '@/lib/supabase'
 
 export async function POST(req: Request) {
   try {
-    const { discordId, username, dashboardRole } = await req.json()
+    const { discordId, username, dashboardRole, actorDiscordId, actorUsername } = await req.json()
     const admin = getSupabaseAdmin()
 
     // Mark as offline
@@ -20,6 +20,8 @@ export async function POST(req: Request) {
         username: username ?? 'unknown',
         action: 'logout',
         dashboard_role: dashboardRole ?? 'unknown',
+        actor_discord_id: actorDiscordId ?? null,
+        actor_username: actorUsername ?? null,
       })
 
     return NextResponse.json({ success: true })

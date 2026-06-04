@@ -12,6 +12,7 @@ import {
 import { cn } from '@/lib/utils'
 import { ROLE_CONFIG, PERMISSION_LABELS } from '@/lib/constants'
 import { supabase } from '@/lib/supabase'
+import { getClientSession } from '@/lib/session'
 import type { Permission, DashboardRole } from '@/types'
 
 const allPermissions = Object.keys(PERMISSION_LABELS) as Permission[]
@@ -388,6 +389,7 @@ function MemberRow({ member, onRefresh }: { member: StaffRow; onRefresh: () => v
     // If we're suspending the user, also mark them offline and record a logout
     if (newStatus === 'suspended') {
       try {
+        const session = getClientSession()
         await fetch('/api/auth/offline', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -395,6 +397,8 @@ function MemberRow({ member, onRefresh }: { member: StaffRow; onRefresh: () => v
             discordId: member.discord_id,
             username: member.username,
             dashboardRole: member.dashboard_role,
+            actorDiscordId: session?.discordId ?? null,
+            actorUsername: session?.username ?? null,
           }),
         })
       } catch (err) {
