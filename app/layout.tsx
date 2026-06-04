@@ -10,6 +10,11 @@ export const metadata: Metadata = {
   title: 'Enmity Exe Moderation Dashboard',
   description: 'Professional moderation dashboard for the Enmity Exe Discord server',
   keywords: ['Enmity Exe', 'Discord', 'Moderation', 'Dashboard'],
+  icons: {
+    icon: '/logo.png',
+    shortcut: '/logo.png',
+    apple: '/logo.png',
+  },
 }
 
 export const viewport: Viewport = {
