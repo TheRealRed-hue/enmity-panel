@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import {
   LayoutDashboard, ScrollText, Bell, Users, Gavel,
-  ShieldCheck, Ban, BarChart3, ChevronLeft, ChevronRight, LogOut,
+  ShieldCheck, Ban, BarChart3, ChevronLeft, ChevronRight, LogOut, X,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useState, useEffect } from 'react'
@@ -35,9 +35,15 @@ function ToriiIcon({ className }: { className?: string }) {
     </svg>
   )
 }
-export function Sidebar() {
-  const router = useRouter()
+
+interface SidebarProps {
+  open?: boolean
+  onClose?: () => void
+}
+
+export function Sidebar({ open = false, onClose }: SidebarProps) {
   const pathname = usePathname()
+  const router = useRouter()
   const [collapsed, setCollapsed] = useState(false)
   const [user, setUser] = useState<SessionUser | null>(null)
 
@@ -45,22 +51,7 @@ export function Sidebar() {
     setUser(getClientSession())
   }, [])
 
-  // PRECISA ESTAR AQUI DENTRO ↓
-  async function handleLogout() {
-    const session = getClientSession()
-
-    if (session) {
-      await fetch('/api/auth/offline', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          discordId: session.discordId,
-          username: session.username,
-          dashboardRole: session.dashboardRole,
-        }),
-      })
-    }
-
+  function handleLogout() {
     clearSession()
     window.location.replace('/login')
   }
@@ -70,13 +61,18 @@ export function Sidebar() {
 
   return (
     <aside className={cn(
-      'fixed left-0 top-0 z-40 h-screen flex flex-col border-r border-border bg-sidebar transition-[width] duration-300 ease-in-out',
+      // Desktop: always visible, fixed
+      'fixed left-0 top-0 z-40 h-screen flex flex-col border-r border-border bg-sidebar transition-[width,transform] duration-300 ease-in-out',
+      // Mobile: slide in/out
+      'lg:translate-x-0',
+      open ? 'translate-x-0' : '-translate-x-full',
+      // Width
       collapsed ? 'w-16' : 'w-60'
     )}>
       {/* Logo */}
       <div className="flex h-14 items-center justify-between px-3 border-b border-border shrink-0">
         {!collapsed && (
-            <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-md bg-primary/15 flex items-center justify-center border border-primary/20">
               <ToriiIcon className="w-5 h-5 text-primary" />
             </div>
@@ -91,20 +87,32 @@ export function Sidebar() {
             <ToriiIcon className="w-5 h-5 text-primary" />
           </div>
         )}
-        {!collapsed && (
-          <button
-            onClick={() => setCollapsed(true)}
-            className="p-1.5 rounded hover:bg-sidebar-accent transition-colors text-muted-foreground hover:text-foreground"
-          >
-            <ChevronLeft className="w-4 h-4" />
-          </button>
-        )}
+        <div className="flex items-center gap-1">
+          {/* Mobile close button */}
+          {onClose && (
+            <button
+              onClick={onClose}
+              className="p-1.5 rounded hover:bg-sidebar-accent transition-colors text-muted-foreground hover:text-foreground lg:hidden"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
+          {/* Desktop collapse button */}
+          {!collapsed && (
+            <button
+              onClick={() => setCollapsed(true)}
+              className="p-1.5 rounded hover:bg-sidebar-accent transition-colors text-muted-foreground hover:text-foreground hidden lg:flex"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+          )}
+        </div>
       </div>
 
       {collapsed && (
         <button
           onClick={() => setCollapsed(false)}
-          className="mx-auto mt-3 p-1.5 rounded hover:bg-sidebar-accent transition-colors text-muted-foreground hover:text-foreground"
+          className="mx-auto mt-3 p-1.5 rounded hover:bg-sidebar-accent transition-colors text-muted-foreground hover:text-foreground hidden lg:flex"
         >
           <ChevronRight className="w-4 h-4" />
         </button>
@@ -119,6 +127,7 @@ export function Sidebar() {
               <li key={item.name}>
                 <Link
                   href={item.href}
+                  onClick={onClose}
                   title={collapsed ? item.name : undefined}
                   className={cn(
                     'flex items-center gap-3 px-2.5 py-2 rounded-md text-sm font-medium transition-colors relative',
@@ -168,9 +177,6 @@ export function Sidebar() {
               href="/login"
               className="flex items-center justify-center gap-2 w-full px-3 py-2 rounded-md bg-[#5865F2]/20 hover:bg-[#5865F2]/30 border border-[#5865F2]/30 transition-colors text-xs font-medium text-[#5865F2]"
             >
-              <svg className="w-3.5 h-3.5" viewBox="0 0 127.14 96.36" fill="currentColor">
-                <path d="M107.7,8.07A105.15,105.15,0,0,0,81.47,0a72.06,72.06,0,0,0-3.36,6.83A97.68,97.68,0,0,0,49,6.83,72.37,72.37,0,0,0,45.64,0,105.89,105.89,0,0,0,19.39,8.09C2.79,32.65-1.71,56.6.54,80.21h0A105.73,105.73,0,0,0,32.71,96.36,77.7,77.7,0,0,0,39.6,85.25a68.42,68.42,0,0,1-10.85-5.18c.91-.66,1.8-1.34,2.66-2a75.57,75.57,0,0,0,64.32,0c.87.71,1.76,1.39,2.66,2a68.68,68.68,0,0,1-10.87,5.19,77,77,0,0,0,6.89,11.1A105.25,105.25,0,0,0,126.6,80.22h0C129.24,52.84,122.09,29.11,107.7,8.07ZM42.45,65.69C36.18,65.69,31,60,31,53s5-12.74,11.43-12.74S54,46,53.89,53,48.84,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.25,60,73.25,53s5-12.74,11.44-12.74S96.23,46,96.12,53,91.08,65.69,84.69,65.69Z"/>
-              </svg>
               Sign in with Discord
             </a>
           )}
