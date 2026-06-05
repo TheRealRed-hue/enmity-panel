@@ -58,11 +58,11 @@ export default function BlacklistPage() {
     <DashboardLayout>
       <Header
         title="Blacklist"
-        subtitle="Gerenciamento de usuários, guilds e servidores banidos"
+        subtitle="Management of banned users, guilds and servers"
         actions={
           <button className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-md bg-critical-red/20 hover:bg-critical-red/30 transition-colors text-critical-red border border-critical-red/30">
             <Plus size={13} />
-            Adicionar
+            Add
           </button>
         }
       />
@@ -72,9 +72,9 @@ export default function BlacklistPage() {
         <div className="grid grid-cols-3 gap-3">
           {(
             [
-              { scope: 'user', label: 'Usuários', color: 'text-critical-red', bg: 'bg-critical-red/10 border-critical-red/20' },
+              { scope: 'user', label: 'Users', color: 'text-critical-red', bg: 'bg-critical-red/10 border-critical-red/20' },
               { scope: 'guild', label: 'Guilds', color: 'text-warning-amber', bg: 'bg-warning-amber/10 border-warning-amber/20' },
-              { scope: 'server', label: 'Servidores', color: 'text-muted-foreground', bg: 'bg-secondary border-border' },
+              { scope: 'server', label: 'Servers', color: 'text-muted-foreground', bg: 'bg-secondary border-border' },
             ] as const
           ).map((item) => (
             <div key={item.scope} className={cn('rounded-lg border p-3', item.bg)}>
@@ -93,7 +93,7 @@ export default function BlacklistPage() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <input
                 type="text"
-                placeholder="Buscar por nome, ID ou motivo..."
+                placeholder="Search by name, ID or reason..."
                 value={search}
                 onChange={(e) => { setSearch(e.target.value); setPage(1) }}
                 className="w-full pl-9 pr-4 py-2 text-sm bg-secondary/50 border border-border rounded-md text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40"
@@ -112,7 +112,7 @@ export default function BlacklistPage() {
                       : 'text-muted-foreground hover:text-foreground'
                   )}
                 >
-                  {s === 'all' ? 'Todos' : scopeLabels[s].label}
+                  {s === 'all' ? 'All' : scopeLabels[s].label}
                 </button>
               ))}
             </div>
@@ -123,22 +123,22 @@ export default function BlacklistPage() {
         <Section>
           <div className="rounded-lg bg-card border border-border overflow-hidden">
             <div className="hidden md:grid grid-cols-[2fr_1fr_2fr_1fr_1fr_100px] gap-4 px-4 py-2.5 border-b border-border bg-secondary/20 text-xs font-medium text-muted-foreground uppercase tracking-wide">
-              <span>Alvo</span>
-              <span>Tipo</span>
-              <span>Motivo</span>
-              <span>Adicionado por</span>
-              <span>Severidade</span>
-              <span>Data</span>
+              <span>Target</span>
+              <span>Type</span>
+              <span>Reason</span>
+              <span>Added by</span>
+              <span>Severity</span>
+              <span>Date</span>
             </div>
 
             {paginated.length === 0 ? (
               <EmptyState
                 icon={Ban}
-                title="Blacklist vazia"
+                title="Empty blacklist"
                 description={
                   entries.length === 0
-                    ? 'Os usuários, guilds e servidores banidos aparecerão aqui após integração com o banco de dados.'
-                    : 'Nenhum registro corresponde aos filtros aplicados.'
+                    ? 'Banned users, guilds and servers will appear here after database integration.'
+                    : 'No records match the applied filters.'
                 }
               />
             ) : (
@@ -152,7 +152,7 @@ export default function BlacklistPage() {
             {filtered.length > 0 && (
               <div className="flex items-center justify-between px-4 py-3 border-t border-border">
                 <span className="text-xs text-muted-foreground">
-                  {filtered.length} registro{filtered.length !== 1 ? 's' : ''}
+                  {filtered.length} record{filtered.length !== 1 ? 's' : ''}
                 </span>
                 <div className="flex items-center gap-2">
                   <button
@@ -197,7 +197,7 @@ function BlacklistRow({ entry }: { entry: BlacklistEntry }) {
       <div className="text-muted-foreground truncate">{entry.addedByUsername}</div>
       <SeverityBadge severity={entry.severity} />
       <div className="text-xs text-muted-foreground">
-        {new Date(entry.createdAt).toLocaleDateString('pt-BR')}
+        {new Date(entry.createdAt).toLocaleDateString('en-US')}
       </div>
     </li>
   )

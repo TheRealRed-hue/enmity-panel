@@ -61,7 +61,7 @@ export default function VerificationPage() {
     <DashboardLayout>
       <Header
         title="Verification"
-        subtitle="Fluxo de verificação de membros do servidor"
+        subtitle="Server member verification flow"
       />
 
       <PageShell>
@@ -89,7 +89,7 @@ export default function VerificationPage() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <input
                 type="text"
-                placeholder="Buscar por usuário ou Discord ID..."
+                placeholder="Search by user or Discord ID..."
                 value={search}
                 onChange={(e) => { setSearch(e.target.value); setPage(1) }}
                 className="w-full pl-9 pr-4 py-2 text-sm bg-secondary/50 border border-border rounded-md text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40"
@@ -101,7 +101,7 @@ export default function VerificationPage() {
                 onClick={() => setStatusFilter('all')}
                 className="px-3 py-2 text-xs text-muted-foreground hover:text-foreground border border-border rounded-md hover:bg-secondary transition-colors"
               >
-                Limpar filtro
+                Clear filter
               </button>
             )}
           </div>
@@ -111,21 +111,21 @@ export default function VerificationPage() {
         <Section>
           <div className="rounded-lg bg-card border border-border overflow-hidden">
             <div className="hidden md:grid grid-cols-[2fr_1fr_1fr_1fr_120px] gap-4 px-4 py-2.5 border-b border-border bg-secondary/20 text-xs font-medium text-muted-foreground uppercase tracking-wide">
-              <span>Usuário</span>
+              <span>User</span>
               <span>Status</span>
-              <span>Método</span>
-              <span>Revisado por</span>
-              <span>Data</span>
+              <span>Method</span>
+              <span>Reviewed by</span>
+              <span>Date</span>
             </div>
 
             {paginated.length === 0 ? (
               <EmptyState
                 icon={ShieldCheck}
-                title="Nenhum registro de verificação"
+                title="No verification records"
                 description={
                   records.length === 0
-                    ? 'Os registros de verificação de membros aparecerão aqui após a integração com o bot.'
-                    : 'Nenhum registro corresponde aos filtros aplicados.'
+                    ? 'Member verification records will appear here after bot integration.'
+                    : 'No records match the applied filters.'
                 }
               />
             ) : (
@@ -138,7 +138,7 @@ export default function VerificationPage() {
 
             {filtered.length > 0 && (
               <div className="flex items-center justify-between px-4 py-3 border-t border-border">
-                <span className="text-xs text-muted-foreground">{filtered.length} registro{filtered.length !== 1 ? 's' : ''}</span>
+                <span className="text-xs text-muted-foreground">{filtered.length} record{filtered.length !== 1 ? 's' : ''}</span>
                 <div className="flex items-center gap-2">
                   <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1} className="p-1.5 rounded-md hover:bg-secondary transition-colors text-muted-foreground disabled:opacity-40 disabled:cursor-not-allowed"><ChevronLeft size={14} /></button>
                   <span className="text-xs text-muted-foreground">{page} / {totalPages}</span>
