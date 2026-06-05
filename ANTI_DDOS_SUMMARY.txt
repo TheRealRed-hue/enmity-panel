@@ -1,0 +1,43 @@
+Resumo do sistema anti-DDoS (per-task IP blocking)
+
+Objetivo:
+- Bloquear temporariamente endereços IP que enviem muitas requisições direcionadas a uma mesma tarefa/rota, evitando sobrecarga e abuso.
+
+Componentes principais:
+- Redis: contadores por chave (task:IP) e armazenamento de bans (set ou TTL key).
+- Middleware/Handler: verifica contadores e estado de ban antes de processar a requisição.
+- Configurações: limiares por rota/tarefa, janela de tempo, duração do ban, whitelist de IPs/serviços.
+- Logs/monitoramento: registrar eventos de rate-limit e bans (para análise e ajuste).
+- Endpoints administrativos: listar bans, remover ban (unban manual) e ajustar limites.
+
+Fluxo básico:
+1. Ao receber requisição, extrair IP do cliente e identificador da tarefa/rota.
+2. Incrementar contador Redis com chave: `ratelimit:{task}:{ip}` usando TTL da janela (ex: 60s).
+3. Se contador exceder o limiar configurado para a tarefa, criar/ativar ban em `bans:{ip}:{task}` com TTL de ban (ex: 1h).
+4. Se IP estiver banido, responder com HTTP 429/403 e registrar o evento.
+5. Opcional: aplicar backoff progressivo ou bloqueio em nível global se detectar múltiplas tasks atacando.
+
+Configurações recomendadas (padrão inicial):
+- Janela de medição: 60s
+- Limiar por tarefa: 30 requisições/60s (ajustar por rota)
+- Duração do ban inicial: 1 hora
+- Política de aumento: duplicar duração do ban para reincidências (exponencial)
+
+Cuidados e limitações:
+- IPs NAT/Proxies: usuários legítimos podem compartilhar IP; considerar heurísticas adicionais (tokens, cookies, headers confiáveis).
+- Spoofing: certifique-se de usar o IP real (X-Forwarded-For com proxy confiável) ou cabeçalhos do balanceador.
+- Redis é um ponto crítico: use Redis replicado/gerenciado para alta disponibilidade.
+
+Teste e implantação:
+- Testes locais com um Redis de desenvolvimento.
+- Testes de carga simulando requisições por IPs múltiplos e por única tarefa.
+- Monitorar métricas (rechamadas 429, contadores de bans) e ajustar limiares.
+
+Próximos passos (p/ implementação):
+1. Adicionar client Redis/variáveis de ambiente (`REDIS_URL`).
+2. Implementar funções utilitárias: `incCounter(task, ip)`, `isBanned(task, ip)`, `banIp(task, ip, duration)`.
+3. Criar middleware genérico `rateLimitTask(taskId, options)` aplicável às rotas.
+4. Integrar middleware nas rotas críticas (ex: endpoints que executam tarefas dispendiosas).
+5. Implementar endpoints administrativos e logging.
+
+Deseja que eu implemente agora o código de exemplo (Redis + middleware) em `app/api`? Se sim, diga quais rotas/`taskId`s devemos proteger e os valores padrão desejados.
