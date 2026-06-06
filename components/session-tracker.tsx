@@ -8,15 +8,16 @@ export function SessionTracker() {
   useEffect(() => {
     const session = getClientSession()
     if (!session) return
+    const currentSession = session
 
     async function setOnline() {
       await fetch('/api/auth/online', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          discordId: session!.discordId,
-          username: session!.username,
-          dashboardRole: session!.dashboardRole,
+          discordId: currentSession.discordId,
+          username: currentSession.username,
+          dashboardRole: currentSession.dashboardRole,
         }),
       })
     }
@@ -25,7 +26,7 @@ export function SessionTracker() {
       await fetch('/api/auth/heartbeat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ discordId: session!.discordId }),
+        body: JSON.stringify({ discordId: currentSession.discordId }),
       })
     }
 
@@ -36,6 +37,8 @@ export function SessionTracker() {
     setOnline()
     sendHeartbeat()
 
+    // Do not record logout on page reload. Offline is detected via heartbeat inactivity.
+    // This avoids reloads being treated as real logouts.
     // Realtime subscription: force logout if this member is suspended or marked offline
     const channel = supabase
       .channel(`presence-staff-${session.discordId}`)
