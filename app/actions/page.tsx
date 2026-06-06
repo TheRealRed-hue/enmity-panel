@@ -303,6 +303,7 @@ export default function ActionsPage() {
             <ul className="space-y-1">
               {commands.map((cmd) => {
                 const isRestricted = (cmd.type === 'blacklist' || cmd.type === 'unblacklist') && !canManageBlacklist
+                const CommandIcon = cmd.icon
                 return (
                   <li key={cmd.type}>
                     <button
@@ -320,8 +321,8 @@ export default function ActionsPage() {
                           : 'hover:bg-secondary/60 hover:text-foreground'
                       )}
                     >
-                    <cmd.icon size={16} className={cmd.color} />
-                    <div>
+                      <CommandIcon size={16} className={cmd.color} />
+                      <div>
                       <p className="font-medium">{cmd.label}</p>
                       <p className="text-xs text-muted-foreground line-clamp-1">{cmd.description}</p>
                     </div>
