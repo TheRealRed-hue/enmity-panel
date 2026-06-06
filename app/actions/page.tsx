@@ -133,6 +133,9 @@ export default function ActionsPage() {
   const [recentLogs, setRecentLogs] = useState<ModerationLog[]>([])
   const [successMsg, setSuccessMsg] = useState<string | null>(null)
 
+  const session = getClientSession()
+  const canManageBlacklist = session?.permissions.includes('blacklist') ?? false
+
   function handleSelect(cmd: CommandDef) {
     setSelected(cmd)
     setFormData({})
@@ -180,6 +183,12 @@ export default function ActionsPage() {
     }
 
     if (!selected) return
+
+    if ((selected.type === 'blacklist' || selected.type === 'unblacklist') && !canManageBlacklist) {
+      setSuccessMsg('Você não tem permissão para executar ações de blacklist.')
+      setConfirming(false)
+      return
+    }
 
     const userId = formData['userId'] || formData['targetId'] || 'unknown'
     const newLog: ModerationLog = {
@@ -292,17 +301,25 @@ export default function ActionsPage() {
           {/* Command list */}
           <Section title="Available Commands">
             <ul className="space-y-1">
-              {commands.map((cmd) => (
-                <li key={cmd.type}>
-                  <button
-                    onClick={() => handleSelect(cmd)}
-                    className={cn(
-                      'w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm transition-colors text-left',
-                      selected?.type === cmd.type
-                        ? 'bg-primary/15 border border-primary/30 text-foreground'
-                        : 'hover:bg-secondary/60 text-muted-foreground hover:text-foreground border border-transparent'
-                    )}
-                  >
+              {commands.map((cmd) => {
+                const isRestricted = (cmd.type === 'blacklist' || cmd.type === 'unblacklist') && !canManageBlacklist
+                return (
+                  <li key={cmd.type}>
+                    <button
+                      type="button"
+                      disabled={isRestricted}
+                      title={isRestricted ? 'Somente Head Moderator+ pode usar blacklist' : undefined}
+                      onClick={() => handleSelect(cmd)}
+                      className={cn(
+                        'w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm transition-colors text-left',
+                        selected?.type === cmd.type
+                          ? 'bg-primary/15 border border-primary/30 text-foreground'
+                          : 'text-muted-foreground border border-transparent',
+                        isRestricted
+                          ? 'opacity-50 cursor-not-allowed'
+                          : 'hover:bg-secondary/60 hover:text-foreground'
+                      )}
+                    >
                     <cmd.icon size={16} className={cmd.color} />
                     <div>
                       <p className="font-medium">{cmd.label}</p>

@@ -203,6 +203,9 @@ export default function BlacklistPage() {
   const [deletingIds, setDeletingIds] = useState<string[]>([])
   const [deleteError, setDeleteError] = useState<string | null>(null)
 
+  const session = getClientSession()
+  const canManageBlacklist = session?.permissions.includes('blacklist') ?? false
+
   function normalizeBlacklistEntry(entry: Record<string, any>): BlacklistEntry {
     return {
       id: entry.id,
@@ -265,6 +268,11 @@ export default function BlacklistPage() {
   }
 
   async function handleRemoveEntry(entry: BlacklistEntry) {
+    if (!canManageBlacklist) {
+      setDeleteError('Você não tem permissão para remover entradas da blacklist.')
+      return
+    }
+
     const confirmed = window.confirm(`Remove blacklist entry for ${entry.targetName || entry.targetId}?`)
     if (!confirmed) return
 
@@ -333,13 +341,17 @@ export default function BlacklistPage() {
         title="Blacklist"
         subtitle="Management of banned users, guilds, servers and channels"
         actions={
-          <button
-            onClick={() => setShowAddModal(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-md bg-critical-red/20 hover:bg-critical-red/30 transition-colors text-critical-red border border-critical-red/30"
-          >
-            <Plus size={13} />
-            Add
-          </button>
+          canManageBlacklist ? (
+            <button
+              onClick={() => setShowAddModal(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-md bg-critical-red/20 hover:bg-critical-red/30 transition-colors text-critical-red border border-critical-red/30"
+            >
+              <Plus size={13} />
+              Add
+            </button>
+          ) : (
+            <div className="text-xs text-muted-foreground">Somente Head Moderator+ pode adicionar blacklist</div>
+          )
         }
       />
 
@@ -430,6 +442,7 @@ export default function BlacklistPage() {
                     entry={entry}
                     onRemove={handleRemoveEntry}
                     deleting={deletingIds.includes(entry.id)}
+                    canManageBlacklist={canManageBlacklist}
                   />
                 ))}
               </ul>
@@ -483,10 +496,12 @@ function BlacklistRow({
   entry,
   onRemove,
   deleting,
+  canManageBlacklist,
 }: {
   entry: BlacklistEntry
   onRemove?: (entry: BlacklistEntry) => void
   deleting?: boolean
+  canManageBlacklist: boolean
 }) {
   const scope = scopeLabels[entry.scope]
 
@@ -509,8 +524,12 @@ function BlacklistRow({
           <button
             type="button"
             onClick={() => onRemove(entry)}
-            disabled={deleting}
-            className="inline-flex items-center justify-center rounded-md border border-border px-2 py-1 text-xs text-muted-foreground hover:bg-secondary/70 hover:text-foreground disabled:opacity-40"
+            disabled={deleting || !canManageBlacklist}
+            className={cn(
+              'inline-flex items-center justify-center rounded-md border border-border px-2 py-1 text-xs',
+              'text-muted-foreground hover:bg-secondary/70 hover:text-foreground disabled:opacity-40',
+              !canManageBlacklist && 'cursor-not-allowed'
+            )}
           >
             <Trash2 size={14} />
           </button>
