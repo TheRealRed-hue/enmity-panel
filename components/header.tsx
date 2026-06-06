@@ -21,8 +21,6 @@ export function Header({ title, subtitle, actions }: HeaderProps) {
       <div className="flex items-center gap-2">
         {actions}
 
-        <NotificationBell userId={undefined} />
-
         <NotificationPanel />
 
         <div className="flex items-center gap-1.5 px-2.5 py-1 bg-success-green/10 border border-success-green/20 rounded-full">
