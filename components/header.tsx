@@ -1,5 +1,6 @@
 'use client'
 
+import NotificationBell from '@/components/notification-bell'
 import { NotificationPanel } from '@/components/ui/notification-panel'
 
 interface HeaderProps {
@@ -20,6 +21,8 @@ export function Header({ title, subtitle, actions }: HeaderProps) {
 
       <div className="flex items-center gap-2">
         {actions}
+
+        <NotificationBell userId={undefined} />
 
         <NotificationPanel />
 
