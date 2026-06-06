@@ -206,6 +206,72 @@ export interface VerificationRecord {
   failureReason: string | null
 }
 
+export type VerificationIssueStatus =
+  | 'waiting_for_roblox'
+  | 'verification_in_progress'
+  | 'verification_completed'
+  | 'verification_failed'
+  | 'pending_moderator_review'
+  | 'approved'
+  | 'denied'
+  | 'manually_verified'
+
+export type VerificationFailureReason =
+  | 'has_no_deepwoken_badges'
+  | 'recent_deepwoken_badge'
+  | 'new_discord_account'
+  | 'new_roblox_account'
+  | 'no_verified_email'
+  | 'no_verified_phone'
+
+export interface VerificationFriend {
+  id: string
+  username: string
+  robloxId: string
+  blacklistReason: string
+  moderator: string
+  addedAt: string
+  evidenceUrl?: string
+}
+
+export interface VerificationActivityEvent {
+  id: string
+  title: string
+  description: string
+  timestamp: string
+  type: 'system' | 'bot' | 'moderator'
+}
+
+export interface VerificationFriendAnalysis {
+  hasBlacklistedFriends: boolean
+  blacklistedFriendsCount: number
+  blacklistedFriends: VerificationFriend[]
+}
+
+export interface VerificationRiskScore {
+  value: number
+}
+
+export interface VerificationRequest {
+  id: string
+  discordUsername: string
+  discordId: string
+  ticketId: string
+  ticketCreatedAt: string
+  status: VerificationIssueStatus
+  robloxUsername: string
+  robloxId: string
+  robloxDisplayName: string
+  robloxAccountAge: string
+  robloxVerifiedAt: string
+  failureReasons: VerificationFailureReason[]
+  friendAnalysis: VerificationFriendAnalysis
+  riskScore: VerificationRiskScore
+  activity: VerificationActivityEvent[]
+  lastUpdated: string
+  moderatorDecision?: 'approved' | 'denied' | 'manually_verified'
+}
+
 // ── Analytics ─────────────────────────────────
 
 export interface AnalyticsDataPoint {

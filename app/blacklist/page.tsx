@@ -350,7 +350,7 @@ export default function BlacklistPage() {
               Add
             </button>
           ) : (
-            <div className="text-xs text-muted-foreground">Somente Head Moderator+ pode adicionar blacklist</div>
+            <div className="text-xs text-muted-foreground">Only higher up + can blacklist people</div>
           )
         }
       />
