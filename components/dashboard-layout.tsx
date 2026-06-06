@@ -51,7 +51,27 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
     setUser(getClientSession())
   }, [])
 
-  function handleLogout() {
+  async function handleLogout() {
+    if (user) {
+      const payload = JSON.stringify({
+        discordId: user.discordId,
+        username: user.username,
+        dashboardRole: user.dashboardRole,
+      })
+
+      if (navigator.sendBeacon) {
+        const blob = new Blob([payload], { type: 'application/json' })
+        navigator.sendBeacon('/api/auth/offline', blob)
+      } else {
+        await fetch('/api/auth/offline', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: payload,
+          keepalive: true,
+        })
+      }
+    }
+
     clearSession()
     window.location.replace('/login')
   }

@@ -6,10 +6,20 @@ export async function GET(req: NextRequest) {
   if (sessionCookie) {
     try {
       const session = JSON.parse(decodeURIComponent(sessionCookie))
-      await getSupabaseAdmin()
+      const admin = getSupabaseAdmin()
+      await admin
         .from('staff_members')
         .update({ online: false })
         .eq('discord_id', session.discordId)
+
+      await admin
+        .from('access_logs')
+        .insert({
+          discord_id: session.discordId,
+          username: session.username ?? 'unknown',
+          action: 'logout',
+          dashboard_role: session.dashboardRole ?? 'unknown',
+        })
     } catch {}
   }
 
