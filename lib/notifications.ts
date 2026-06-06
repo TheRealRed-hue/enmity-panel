@@ -27,10 +27,8 @@ async function fetchInitial() {
     const session = getClientSession()
     let readSet = new Set<string>()
     if (session) {
-      const r = await fetch(`/api/notification_reads?user_id=${encodeURIComponent(session.discordId)}`)
-      const rc = await r.json()
-      // the GET returns { count } — we need the reads list; instead fetch reads table
-      const readsRes = await fetch(`/api/internal/notification_reads?user_id=${encodeURIComponent(session.discordId)}`)
+      // fetch list of reads for this user
+      const readsRes = await fetch(`/api/notification_reads?user_id=${encodeURIComponent(session.discordId)}&list=true`)
       const reads = readsRes.ok ? await readsRes.json() : []
       readSet = new Set((reads ?? []).map((r: any) => r.notification_id))
     }
@@ -46,6 +44,18 @@ async function fetchInitial() {
     notify()
   } catch (err) {
     console.error('fetchInitial notifications', err)
+  }
+}
+
+export async function addNotification(n: { type: NotificationType; title: string; body: string }) {
+  try {
+    await fetch('/api/notifications', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: n.type, payload: { title: n.title, message: n.body } }),
+    })
+  } catch (err) {
+    console.error('addNotification', err)
   }
 }
 
