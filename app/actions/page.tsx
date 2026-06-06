@@ -323,12 +323,13 @@ export default function ActionsPage() {
                     >
                       <CommandIcon size={16} className={cmd.color} />
                       <div>
-                      <p className="font-medium">{cmd.label}</p>
-                      <p className="text-xs text-muted-foreground line-clamp-1">{cmd.description}</p>
-                    </div>
-                  </button>
-                </li>
-              ))}
+                        <p className="font-medium">{cmd.label}</p>
+                        <p className="text-xs text-muted-foreground line-clamp-1">{cmd.description}</p>
+                      </div>
+                    </button>
+                  </li>
+                )
+              })}
             </ul>
           </Section>
 
