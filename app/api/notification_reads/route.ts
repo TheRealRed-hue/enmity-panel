@@ -37,8 +37,15 @@ export async function GET(req: NextRequest) {
     const url = new URL(req.url)
     const user_id = url.searchParams.get('user_id')
     if (!user_id) return NextResponse.json({ error: 'Missing user_id' }, { status: 400 })
+    const list = url.searchParams.get('list') === 'true'
 
     const admin = getSupabaseAdmin()
+    if (list) {
+      const { data: reads, error } = await admin.from('notification_reads').select('*').eq('user_id', user_id)
+      if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+      return NextResponse.json(reads ?? [])
+    }
+
     const [{ data: notifications }, { data: reads, error: readsError }] = await Promise.all([
       admin.from('notifications').select('id'),
       admin.from('notification_reads').select('notification_id').eq('user_id', user_id),

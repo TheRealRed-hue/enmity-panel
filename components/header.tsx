@@ -1,6 +1,5 @@
 'use client'
 
-import NotificationBell from '@/components/notification-bell'
 import { NotificationPanel } from '@/components/ui/notification-panel'
 
 interface HeaderProps {
