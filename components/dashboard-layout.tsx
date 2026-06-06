@@ -7,7 +7,7 @@ import {
   ShieldCheck, Ban, BarChart3, ChevronLeft, ChevronRight, LogOut, X,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, type ReactNode } from 'react'
 import { getClientSession, clearSession, type SessionUser } from '@/lib/session'
 import { ROLE_CONFIG } from '@/lib/constants'
 
@@ -183,5 +183,37 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
         </div>
       )}
     </aside>
+  )
+}
+
+interface DashboardLayoutProps {
+  children: ReactNode
+}
+
+export function DashboardLayout({ children }: DashboardLayoutProps) {
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+
+  return (
+    <div className="min-h-screen bg-background text-foreground">
+      <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+
+      <div className="lg:pl-60">
+        <div className="lg:hidden border-b border-border bg-background/90 backdrop-blur-sm sticky top-0 z-20">
+          <div className="flex items-center justify-between px-4 py-3">
+            <button
+              type="button"
+              onClick={() => setSidebarOpen(true)}
+              className="inline-flex items-center gap-2 rounded-md border border-border bg-secondary/80 px-3 py-2 text-sm font-medium text-foreground hover:bg-secondary transition-colors"
+            >
+              Menu
+            </button>
+          </div>
+        </div>
+
+        <main className="min-h-screen">
+          {children}
+        </main>
+      </div>
+    </div>
   )
 }
