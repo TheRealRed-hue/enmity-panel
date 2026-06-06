@@ -36,6 +36,7 @@ export function SessionTracker() {
 
     setOnline()
     sendHeartbeat()
+    checkAndMarkOffline()
 
     // Do not record logout on page reload. Offline is detected via heartbeat inactivity.
     // This avoids reloads being treated as real logouts.

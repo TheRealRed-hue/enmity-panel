@@ -6,7 +6,16 @@ import { Header } from '@/components/header'
 import { PageShell, Section } from '@/components/ui/page-shell'
 import { EmptyState } from '@/components/ui/empty-state'
 import {
-  Search, Download, ScrollText, LogIn, LogOut, ChevronLeft, ChevronRight, RefreshCw,
+  Search,
+  Download,
+  ScrollText,
+  LogIn,
+  LogOut,
+  ChevronLeft,
+  ChevronRight,
+  RefreshCw,
+  Shield,
+  Trash2,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { supabase } from '@/lib/supabase'
@@ -26,7 +35,7 @@ export default function LogsPage() {
   const [logs, setLogs] = useState<AccessLog[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
-  const [filter, setFilter] = useState<'all' | 'login' | 'logout' | 'reconnect'>('all')
+  const [filter, setFilter] = useState<'all' | 'login' | 'logout' | 'reconnect' | 'blacklist' | 'unblacklist'>('all')
   const [page, setPage] = useState(1)
 
   useEffect(() => {
@@ -68,6 +77,8 @@ export default function LogsPage() {
     login: 'Logins',
     logout: 'Logouts',
     reconnect: 'Reconnects',
+    blacklist: 'Blacklist',
+    unblacklist: 'Remove Blacklist',
   }
 
   return (
@@ -98,7 +109,7 @@ export default function LogsPage() {
             </div>
 
             <div className="flex gap-1.5">
-              {(['all', 'login', 'logout', 'reconnect'] as const).map((f) => (
+              {(['all', 'login', 'logout', 'reconnect', 'blacklist', 'unblacklist'] as const).map((f) => (
                 <button
                   key={f}
                   onClick={() => { setFilter(f); setPage(1) }}
@@ -163,10 +174,25 @@ export default function LogsPage() {
                           <RefreshCw size={13} className="text-primary" />
                           <span className="text-xs text-primary font-medium">Reconnect</span>
                         </>
-                      ) : (
+                      ) : log.action === 'logout' ? (
                         <>
                           <LogOut size={13} className="text-warning-amber" />
                           <span className="text-xs text-warning-amber font-medium">Logout</span>
+                        </>
+                      ) : log.action === 'blacklist' ? (
+                        <>
+                          <Shield size={13} className="text-critical-red" />
+                          <span className="text-xs text-critical-red font-medium">Blacklist</span>
+                        </>
+                      ) : log.action === 'unblacklist' ? (
+                        <>
+                          <Trash2 size={13} className="text-warning-amber" />
+                          <span className="text-xs text-warning-amber font-medium">Remove Blacklist</span>
+                        </>
+                      ) : (
+                        <>
+                          <ScrollText size={13} className="text-muted-foreground" />
+                          <span className="text-xs text-muted-foreground font-medium">{log.action}</span>
                         </>
                       )}
                     </div>

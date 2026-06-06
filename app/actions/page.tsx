@@ -15,8 +15,12 @@ import {
   AlertTriangle,
   ScrollText,
   CheckCircle2,
+  Trash2,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { supabase } from '@/lib/supabase'
+import { getClientSession } from '@/lib/session'
+import { addNotification } from '@/lib/notifications'
 import type { ModerationActionType, ModerationLog, SeverityLevel } from '@/types'
 import { ACTION_TYPE_LABELS } from '@/lib/constants'
 
@@ -99,10 +103,23 @@ const commands: CommandDef[] = [
     color: 'text-critical-red',
     defaultSeverity: 'critical',
     fields: [
-      { key: 'targetId', label: 'Discord ID (user or guild)', type: 'text', required: true, placeholder: '123456789012345678' },
-      { key: 'scope', label: 'Scope', type: 'select', required: true, options: ['User', 'Guild', 'Server'] },
+      { key: 'targetId', label: 'Discord ID (user, guild, server or channel)', type: 'text', required: true, placeholder: '123456789012345678' },
+      { key: 'scope', label: 'Scope', type: 'select', required: true, options: ['User', 'Guild', 'Server', 'Channel'] },
       { key: 'reason', label: 'Reason', type: 'textarea', required: true, placeholder: 'Justification for blacklist...' },
       { key: 'severity', label: 'Severity', type: 'select', required: true, options: ['Low', 'Medium', 'High', 'Critical'] },
+    ],
+  },
+  {
+    type: 'unblacklist',
+    label: 'Remove Blacklist',
+    description: 'Remove a target from the global blacklist.',
+    icon: Trash2,
+    color: 'text-warning-amber',
+    defaultSeverity: 'low',
+    fields: [
+      { key: 'targetId', label: 'Discord ID (user, guild, server or channel)', type: 'text', required: true, placeholder: '123456789012345678' },
+      { key: 'scope', label: 'Scope', type: 'select', required: true, options: ['User', 'Guild', 'Server', 'Channel'] },
+      { key: 'reason', label: 'Reason', type: 'textarea', required: true, placeholder: 'Justification for blacklist removal...' },
     ],
   },
 ]
@@ -127,7 +144,36 @@ export default function ActionsPage() {
     setFormData((prev) => ({ ...prev, [key]: value }))
   }
 
-  function handleSubmit() {
+  async function recordModeratorAction(action: 'blacklist' | 'unblacklist') {
+    try {
+      const session = getClientSession()
+      if (!session) return false
+
+      const response = await fetch('/api/logs/record', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          discordId: session.discordId,
+          username: session.username,
+          action,
+          dashboardRole: session.dashboardRole,
+        }),
+      })
+
+      if (!response.ok) {
+        const body = await response.json().catch(() => null)
+        console.error('Access log failed', action, response.status, body)
+        return false
+      }
+
+      return true
+    } catch (err) {
+      console.error('Access log request failed', action, err)
+      return false
+    }
+  }
+
+  async function handleSubmit() {
     if (!confirming) {
       setConfirming(true)
       return
@@ -135,7 +181,6 @@ export default function ActionsPage() {
 
     if (!selected) return
 
-    // Build a log entry and prepend it
     const userId = formData['userId'] || formData['targetId'] || 'unknown'
     const newLog: ModerationLog = {
       id: `log_${Date.now()}`,
@@ -155,13 +200,71 @@ export default function ActionsPage() {
       createdAt: new Date().toISOString(),
     }
 
+    if (selected.type === 'blacklist') {
+      const { error } = await supabase.from('blacklist').insert({
+        scope: (formData['scope'] as string)?.toLowerCase() || 'user',
+        target_id: userId,
+        target_username: userId,
+        reason: newLog.reason,
+        added_by_id: newLog.moderatorId,
+        added_by_username: newLog.moderatorUsername,
+        expires_at: null,
+        severity: newLog.severity,
+        created_at: newLog.createdAt,
+      })
+      if (error) {
+        setSuccessMsg(`Blacklist failed: ${error.message}`)
+        setConfirming(false)
+        return
+      }
+
+      const logSuccess = await recordModeratorAction('blacklist')
+      if (logSuccess) {
+        addNotification({
+          type: 'mod_action',
+          title: 'Blacklist added',
+          body: `${newLog.moderatorUsername} blacklisted ${newLog.targetUsername}`,
+        })
+      }
+    }
+
+    if (selected.type === 'unblacklist') {
+      const scope = (formData['scope'] as string)?.toLowerCase() || 'user'
+      const { data, error } = await supabase
+        .from('blacklist')
+        .delete()
+        .select('*')
+        .eq('target_id', userId)
+        .eq('scope', scope)
+
+      if (error) {
+        setSuccessMsg(`Remove blacklist failed: ${error.message}`)
+        setConfirming(false)
+        return
+      }
+
+      if (!data || data.length === 0) {
+        setSuccessMsg('No blacklist entry found matching that target and scope.')
+        setConfirming(false)
+        return
+      }
+
+      const logSuccess = await recordModeratorAction('unblacklist')
+      if (logSuccess) {
+        addNotification({
+          type: 'mod_action',
+          title: 'Blacklist removed',
+          body: `${newLog.moderatorUsername} removed blacklist for ${newLog.targetUsername}`,
+        })
+      }
+    }
+
     setRecentLogs((prev) => [newLog, ...prev].slice(0, 10))
     setSuccessMsg(`${selected.label} executed and logged successfully.`)
     setConfirming(false)
     setSelected(null)
     setFormData({})
 
-    // Clear success message after 4s
     setTimeout(() => setSuccessMsg(null), 4000)
   }
 

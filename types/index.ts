@@ -8,7 +8,7 @@
 export type SeverityLevel = 'low' | 'medium' | 'high' | 'critical'
 export type AlertStatus = 'active' | 'acknowledged' | 'resolved'
 export type MemberStatus = 'active' | 'suspended' | 'inactive'
-export type BlacklistScope = 'user' | 'guild' | 'server'
+export type BlacklistScope = 'user' | 'guild' | 'server' | 'channel'
 export type VerificationStatus = 'pending' | 'approved' | 'rejected' | 'expired'
 export type ModerationActionType =
   | 'ban'
