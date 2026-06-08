@@ -8,12 +8,25 @@ export async function PATCH(req: NextRequest, { params }: Ctx) {
     const body = await req.json()
     const admin = getSupabaseAdmin()
 
+    const allowedFields = [
+      'status', 'appealable', 'reason', 'punishment_type', 'punishment_text',
+      'duration', 'notes', 'target_ingame_name', 'target_discord_id', 'target_roblox_id',
+      'moderator_discord_id', 'moderator_username', 'moderator_avatar', 'mods_in_charge',
+      'evidence', 'timeline', 'metrics',
+    ]
+
+    const patchData: Record<string, unknown> = {}
+    for (const field of allowedFields) {
+      if (field in body) patchData[field] = body[field]
+    }
+
+    if (Object.keys(patchData).length === 0) {
+      return NextResponse.json({ error: 'No valid fields to update' }, { status: 400 })
+    }
+
     const { data, error } = await admin
       .from('cases')
-      .update({
-        ...body,
-        updated_at: new Date().toISOString(),
-      })
+      .update(patchData)
       .eq('case_id', params.id)
       .select()
       .single()

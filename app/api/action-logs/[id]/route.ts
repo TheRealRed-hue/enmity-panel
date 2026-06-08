@@ -111,11 +111,16 @@ export async function DELETE(req: NextRequest, { params }: Ctx) {
       return NextResponse.json({ error: 'Insufficient permissions to delete Action Logs' }, { status: 403 })
     }
 
+    const actionLogId = params?.id ?? new URL(req.url).pathname.split('/').pop() ?? ''
+    if (!actionLogId) {
+      return NextResponse.json({ error: 'Action log ID is missing' }, { status: 400 })
+    }
+
     const admin = getSupabaseAdmin()
     const { error } = await admin
       .from('action_logs')
       .delete()
-      .eq('id', params.id)
+      .eq('id', actionLogId)
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
