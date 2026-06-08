@@ -35,7 +35,7 @@ export default function LogsPage() {
   const [logs, setLogs] = useState<AccessLog[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
-  const [filter, setFilter] = useState<'all' | 'login' | 'logout' | 'reconnect' | 'blacklist' | 'unblacklist'>('all')
+  const [filter, setFilter] = useState<'all' | 'login' | 'logout' | 'reconnect' | 'blacklist' | 'unblacklist' | 'action_log_created' | 'action_log_edited' | 'action_log_deleted'>('all')
   const [page, setPage] = useState(1)
 
   useEffect(() => {
@@ -79,6 +79,9 @@ export default function LogsPage() {
     reconnect: 'Reconnects',
     blacklist: 'Blacklist',
     unblacklist: 'Remove Blacklist',
+    action_log_created: 'Action Log Created',
+    action_log_edited: 'Action Log Edited',
+    action_log_deleted: 'Action Log Deleted',
   }
 
   return (
@@ -109,7 +112,7 @@ export default function LogsPage() {
             </div>
 
             <div className="flex gap-1.5">
-              {(['all', 'login', 'logout', 'reconnect', 'blacklist', 'unblacklist'] as const).map((f) => (
+              {(['all', 'login', 'logout', 'reconnect', 'blacklist', 'unblacklist', 'action_log_created', 'action_log_edited', 'action_log_deleted'] as const).map((f) => (
                 <button
                   key={f}
                   onClick={() => { setFilter(f); setPage(1) }}
@@ -188,6 +191,21 @@ export default function LogsPage() {
                         <>
                           <Trash2 size={13} className="text-warning-amber" />
                           <span className="text-xs text-warning-amber font-medium">Remove Blacklist</span>
+                        </>
+                      ) : log.action === 'action_log_created' ? (
+                        <>
+                          <ScrollText size={13} className="text-primary" />
+                          <span className="text-xs text-primary font-medium">Action Log Created</span>
+                        </>
+                      ) : log.action === 'action_log_edited' ? (
+                        <>
+                          <ScrollText size={13} className="text-warning-amber" />
+                          <span className="text-xs text-warning-amber font-medium">Action Log Edited</span>
+                        </>
+                      ) : log.action === 'action_log_deleted' ? (
+                        <>
+                          <Trash2 size={13} className="text-critical-red" />
+                          <span className="text-xs text-critical-red font-medium">Action Log Deleted</span>
                         </>
                       ) : (
                         <>

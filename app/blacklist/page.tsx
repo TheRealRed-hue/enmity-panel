@@ -269,7 +269,7 @@ export default function BlacklistPage() {
 
   async function handleRemoveEntry(entry: BlacklistEntry) {
     if (!canManageBlacklist) {
-      setDeleteError('Você não tem permissão para remover entradas da blacklist.')
+      setDeleteError('You dont have permission to remove entries from the blacklist.')
       return
     }
 
