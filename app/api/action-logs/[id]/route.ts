@@ -2,10 +2,14 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase'
 import type { DashboardRole } from '@/types'
 
-type Ctx = { params: { id: string } }
+type Ctx = { params?: { id?: string } }
 
 function canEditActionLogs(role: DashboardRole): boolean {
   return ['owner', 'administrator', 'head_moderator', 'senior_moderator', 'moderator'].includes(role)
+}
+
+function getActionLogId(params: Ctx['params'], req: NextRequest) {
+  return params?.id ?? new URL(req.url).pathname.split('/').pop() ?? ''
 }
 
 function canDeleteActionLogs(role: DashboardRole): boolean {
@@ -16,11 +20,16 @@ function canDeleteActionLogs(role: DashboardRole): boolean {
 
 export async function GET(_req: NextRequest, { params }: Ctx) {
   try {
+    const actionLogId = getActionLogId(params, _req)
+    if (!actionLogId) {
+      return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    }
+
     const admin = getSupabaseAdmin()
     const { data, error } = await admin
       .from('action_logs')
       .select('*')
-      .eq('id', params.id)
+      .eq('id', actionLogId)
       .single()
 
     if (error || !data) {
@@ -37,6 +46,11 @@ export async function GET(_req: NextRequest, { params }: Ctx) {
 
 export async function PATCH(req: NextRequest, { params }: Ctx) {
   try {
+    const actionLogId = getActionLogId(params, req)
+    if (!actionLogId) {
+      return NextResponse.json({ error: 'Action log ID is missing' }, { status: 400 })
+    }
+
     const body = await req.json()
     const { editor_dashboard_role, editor_mod_id, editor_mod_username, ...updates } = body
 
@@ -63,7 +77,7 @@ export async function PATCH(req: NextRequest, { params }: Ctx) {
     const { data, error } = await admin
       .from('action_logs')
       .update(patch)
-      .eq('id', params.id)
+      .eq('id', actionLogId)
       .select()
       .single()
 
@@ -75,7 +89,7 @@ export async function PATCH(req: NextRequest, { params }: Ctx) {
       username:       editor_mod_username ?? 'unknown',
       action:         'action_log_edited',
       dashboard_role: editor_dashboard_role,
-      action_log_id:  params.id,
+      action_log_id:  actionLogId,
     }).then(({ error: e }) => {
       if (e) console.error('[action-logs PATCH] audit error:', e.message)
     })

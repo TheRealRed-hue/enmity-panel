@@ -469,10 +469,16 @@ export default function ActionsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: editStatus, editor_dashboard_role: session.dashboardRole, editor_mod_id: session.discordId, editor_mod_username: session.username }),
       })
-      if (!res.ok) throw new Error()
+      const body = await res.json().catch(() => null)
+      if (!res.ok) {
+        setErrorMsg(body?.error ?? 'Failed to update action log.')
+        return
+      }
       setEditingLog(null)
       fetchLogs()
-    } catch { /* handled by UI */ } finally { setEditSaving(false) }
+    } catch {
+      setErrorMsg('Failed to update action log.')
+    } finally { setEditSaving(false) }
   }
 
   async function handleDelete(log: ActionLogRow) {

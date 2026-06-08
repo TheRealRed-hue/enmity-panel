@@ -196,7 +196,7 @@ export default function AlertsPage() {
       : selected.timeline
 
     try {
-      await fetch(`/api/cases/${selected.caseId}`, {
+      await fetch(`/api/cases/${encodeURIComponent(selected.caseId)}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -230,7 +230,7 @@ export default function AlertsPage() {
     const updatedEvidence = [...selected.evidence, ...newEvidence]
     const updatedTimeline = [...selected.timeline, { ts: new Date().toISOString(), text: `[EVIDENCE] ${newEvidence.length} file(s) uploaded` }]
 
-    fetch(`/api/cases/${selected.caseId}`, {
+    fetch(`/api/cases/${encodeURIComponent(selected.caseId)}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ evidence: updatedEvidence, timeline: updatedTimeline }),
@@ -246,7 +246,7 @@ export default function AlertsPage() {
     const updatedEvidence = selected.evidence.filter((e: any) => e.id !== evidenceId)
     const updatedTimeline = [...selected.timeline, { ts: new Date().toISOString(), text: `[DELETED] Evidence removed: ${deletedEvidence?.label ?? 'unknown'}` }]
 
-    fetch(`/api/cases/${selected.caseId}`, {
+    fetch(`/api/cases/${encodeURIComponent(selected.caseId)}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ evidence: updatedEvidence, timeline: updatedTimeline }),
@@ -256,7 +256,7 @@ export default function AlertsPage() {
   const handleDeleteCase = async () => {
     if (!selected || !window.confirm(`Delete case "${selected.caseId}"? This cannot be undone.`)) return
 
-    await fetch(`/api/cases/${selected.caseId}`, { method: 'DELETE' })
+    await fetch(`/api/cases/${encodeURIComponent(selected.caseId)}`, { method: 'DELETE' })
     setSelectedCaseId(null)
   }
 
