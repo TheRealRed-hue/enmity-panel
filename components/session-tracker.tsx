@@ -3,6 +3,7 @@
 import { useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { getClientSession, clearSession } from '@/lib/session'
+import { addNotification } from '@/lib/notifications'
 
 export function SessionTracker() {
   useEffect(() => {
@@ -59,11 +60,32 @@ export function SessionTracker() {
     const heartbeatInterval = setInterval(sendHeartbeat, 30_000)
     const checkInterval = setInterval(checkAndMarkOffline, 60_000)
 
+    const notifChannel = supabase
+      .channel('notifications_realtime')
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'notifications',
+      }, (payload: any) => {
+        const n = payload.new as any
+        addNotification({
+          type: n.type,
+          title: n.payload?.title ?? 'New notification',
+          body: n.payload?.message ?? '',
+        })
+      })
+      .subscribe()
+
     return () => {
       clearInterval(heartbeatInterval)
       clearInterval(checkInterval)
       try {
         channel.unsubscribe()
+        supabase.removeChannel(channel)
+      } catch {}
+      try {
+        notifChannel.unsubscribe()
+        supabase.removeChannel(notifChannel)
       } catch {}
     }
   }, [])
