@@ -24,10 +24,11 @@ export async function PATCH(req: NextRequest, { params }: Ctx) {
       return NextResponse.json({ error: 'No valid fields to update' }, { status: 400 })
     }
 
+    // Use UUID (id) instead of case_id to avoid # in URL issues
     const { data, error } = await admin
       .from('cases')
-      .update(patchData)
-      .eq('case_id', params.id)
+      .update({ ...patchData, updated_at: new Date().toISOString() })
+      .eq('id', params.id)
       .select()
       .single()
 
@@ -44,7 +45,7 @@ export async function DELETE(_req: NextRequest, { params }: Ctx) {
     const { error } = await admin
       .from('cases')
       .delete()
-      .eq('case_id', params.id)
+      .eq('id', params.id)
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
     return NextResponse.json({ ok: true })

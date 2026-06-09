@@ -28,6 +28,7 @@ function OverviewCard({ title, value, className }: { title: string; value: numbe
 // Convert Supabase row to local case format
 function rowToCase(row: any) {
   return {
+    id: row.id,
     caseId: row.case_id,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
@@ -196,7 +197,7 @@ export default function AlertsPage() {
       : selected.timeline
 
     try {
-      await fetch(`/api/cases/${encodeURIComponent(selected.caseId)}`, {
+      await fetch(`/api/cases/${selected.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -230,7 +231,7 @@ export default function AlertsPage() {
     const updatedEvidence = [...selected.evidence, ...newEvidence]
     const updatedTimeline = [...selected.timeline, { ts: new Date().toISOString(), text: `[EVIDENCE] ${newEvidence.length} file(s) uploaded` }]
 
-    fetch(`/api/cases/${encodeURIComponent(selected.caseId)}`, {
+    fetch(`/api/cases/${selected.id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ evidence: updatedEvidence, timeline: updatedTimeline }),
@@ -246,7 +247,7 @@ export default function AlertsPage() {
     const updatedEvidence = selected.evidence.filter((e: any) => e.id !== evidenceId)
     const updatedTimeline = [...selected.timeline, { ts: new Date().toISOString(), text: `[DELETED] Evidence removed: ${deletedEvidence?.label ?? 'unknown'}` }]
 
-    fetch(`/api/cases/${encodeURIComponent(selected.caseId)}`, {
+    fetch(`/api/cases/${selected.id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ evidence: updatedEvidence, timeline: updatedTimeline }),
@@ -256,7 +257,7 @@ export default function AlertsPage() {
   const handleDeleteCase = async () => {
     if (!selected || !window.confirm(`Delete case "${selected.caseId}"? This cannot be undone.`)) return
 
-    await fetch(`/api/cases/${encodeURIComponent(selected.caseId)}`, { method: 'DELETE' })
+    await fetch(`/api/cases/${selected.id}`, { method: 'DELETE' })
     setSelectedCaseId(null)
   }
 
