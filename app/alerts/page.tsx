@@ -159,6 +159,7 @@ export default function AlertsPage() {
       setSelectedCaseId(caseId)
       setFormData({ caseId: '', robloxUsername: '', robloxUserId: '', discordUsername: '', discordId: '', reason: '', punishmentType: 'Warning', duration: '', appealable: false, notes: '' })
       setIsModalOpen(false)
+      await fetchCases()
     } catch {
       alert('An unexpected error occurred.')
     }
@@ -208,9 +209,13 @@ export default function AlertsPage() {
           status: editData.status,
           appealable: editData.appealable,
           timeline: newTimeline,
+          moderator_discord_id: session?.discordId,
+          moderator_username: session?.username,
+          moderator_dashboard_role: session?.dashboardRole,
         }),
       })
       setIsEditOpen(false)
+      await fetchCases()
     } catch {
       alert('Failed to update case.')
     }
@@ -235,7 +240,7 @@ export default function AlertsPage() {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ evidence: updatedEvidence, timeline: updatedTimeline }),
-    })
+    }).then(() => fetchCases())
 
     e.currentTarget.value = ''
   }
@@ -251,14 +256,24 @@ export default function AlertsPage() {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ evidence: updatedEvidence, timeline: updatedTimeline }),
-    })
+    }).then(() => fetchCases())
   }
 
   const handleDeleteCase = async () => {
     if (!selected || !window.confirm(`Delete case "${selected.caseId}"? This cannot be undone.`)) return
 
-    await fetch(`/api/cases/${selected.id}`, { method: 'DELETE' })
+    await fetch(`/api/cases/${selected.id}`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        moderator_discord_id: session?.discordId,
+        moderator_username: session?.username,
+        moderator_dashboard_role: session?.dashboardRole,
+        case_id: selected.caseId,
+      }),
+    })
     setSelectedCaseId(null)
+    await fetchCases()
   }
 
   const filtered = useMemo(() => {
@@ -477,8 +492,8 @@ export default function AlertsPage() {
                       <h4 className="text-sm font-semibold">Timeline</h4>
                       <div className="mt-3">
                         <ol className="border-l border-border ml-2 pl-4 space-y-3">
-                          {selected.timeline.map((t: any) => (
-                            <li key={t.ts} className="relative">
+                          {selected.timeline.map((t: any, i: number) => (
+                            <li key={`${t.ts}-${i}`} className="relative">
                               <div className="absolute -left-4 top-0 w-3 h-3 rounded-full bg-primary" />
                               <div className="text-xs text-muted-foreground">{new Date(t.ts).toLocaleString()}</div>
                               <div className="font-medium">{t.text}</div>
