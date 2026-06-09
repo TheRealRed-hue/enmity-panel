@@ -11,11 +11,12 @@ import {
   type NotificationType,
 } from '@/lib/notifications'
 
-const typeConfig: Record<NotificationType, { icon: React.ElementType; color: string }> = {
+const typeConfig: Record<string, { icon: React.ElementType; color: string }> = {
   mod_action: { icon: Ban, color: 'text-critical-red' },
   alert: { icon: AlertTriangle, color: 'text-warning-amber' },
   member: { icon: Users, color: 'text-success-green' },
   system: { icon: Info, color: 'text-primary' },
+  action_log_created: { icon: Ban, color: 'text-warning-amber' },
 }
 
 function timeAgo(iso: string) {
@@ -101,7 +102,7 @@ export function NotificationPanel() {
             ) : (
               <ul className="divide-y divide-border">
                 {notifications.map((n) => {
-                  const cfg = typeConfig[n.type]
+                  const cfg = typeConfig[n.type] ?? typeConfig['system']
                   return (
                     <li
                       key={n.id}

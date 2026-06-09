@@ -16,6 +16,7 @@ import {
   RefreshCw,
   Shield,
   Trash2,
+  Gavel,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { supabase } from '@/lib/supabase'
@@ -172,6 +173,12 @@ export default function LogsPage() {
                           <LogIn size={13} className="text-success-green" />
                           <span className="text-xs text-success-green font-medium">Login</span>
                         </>
+                      ) : log.action === 'auction_log_created' ? (
+                        <>
+                      <Gavel size={13} className="text-primary" />
+                      <span className="text-xs text-primary font-medium">Auction Log</span>
+                       </>
+
                       ) : log.action === 'reconnect' ? (
                         <>
                           <RefreshCw size={13} className="text-primary" />

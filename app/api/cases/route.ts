@@ -37,6 +37,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json()
     const admin = getSupabaseAdmin()
 
+    // Insert case
     const { data, error } = await admin
       .from('cases')
       .insert({
@@ -63,6 +64,31 @@ export async function POST(req: NextRequest) {
       .single()
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+    // Register in access_logs (shows in Logs page)
+    await admin.from('access_logs').insert({
+      discord_id:     body.moderator?.discordId ?? 'unknown',
+      username:       body.moderator?.username ?? 'unknown',
+      action:         'auction_log_created',
+      dashboard_role: body.moderator?.dashboardRole ?? 'moderator',
+    }).then(({ error: e }) => {
+      if (e) console.error('[cases POST] access_log error:', e.message)
+    })
+
+    // Create notification (shows in bell icon)
+    await admin.from('notifications').insert({
+      type:     'action_log_created',
+      actor_id: body.moderator?.discordId ?? 'unknown',
+      payload: {
+        title:   'New Auction Log Created',
+        message: `${body.moderator?.username ?? 'Someone'} created auction log ${body.caseId} for ${body.target?.ingameName ?? 'unknown'}.`,
+        case_id: data.id,
+        caseId:  body.caseId,
+      },
+    }).then(({ error: e }) => {
+      if (e) console.error('[cases POST] notification error:', e.message)
+    })
+
     return NextResponse.json({ data }, { status: 201 })
   } catch {
     return NextResponse.json({ error: 'Failed to create case' }, { status: 500 })
