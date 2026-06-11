@@ -14,7 +14,7 @@ import { ROLE_CONFIG } from '@/lib/constants'
 const navigation = [
   { name: 'Overview', href: '/', icon: LayoutDashboard },
   { name: 'Logs', href: '/logs', icon: ScrollText },
-  { name: 'Alerts', href: '/alerts', icon: Bell },
+  { name: 'Action Logs', href: '/alerts', icon: Bell },
   { name: 'Team', href: '/team', icon: Users },
   { name: 'Mod Actions', href: '/actions', icon: Gavel },
   { name: 'Verification', href: '/verification', icon: ShieldCheck },
