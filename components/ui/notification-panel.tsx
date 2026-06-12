@@ -10,6 +10,7 @@ import {
   type AppNotification,
   type NotificationType,
 } from '@/lib/notifications'
+import { useNotificationsEnabled } from '@/components/preferences-provider'
 
 const typeConfig: Record<string, { icon: React.ElementType; color: string }> = {
   mod_action: { icon: Ban, color: 'text-critical-red' },
@@ -31,6 +32,7 @@ export function NotificationPanel() {
   const [open, setOpen] = useState(false)
   const [notifications, setNotifications] = useState<AppNotification[]>([])
   const panelRef = useRef<HTMLDivElement>(null)
+  const notificationsEnabled = useNotificationsEnabled()
 
   useEffect(() => {
     return subscribe(setNotifications)
@@ -47,6 +49,8 @@ export function NotificationPanel() {
   }, [open])
 
   const unread = notifications.filter((n) => !n.read).length
+
+  if (!notificationsEnabled) return null
 
   return (
     <div className="relative" ref={panelRef}>
