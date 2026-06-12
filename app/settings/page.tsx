@@ -121,7 +121,7 @@ export default function SettingsPage() {
         <PageShell>
           <div className="flex items-center justify-center py-24 text-muted-foreground">
             <Loader2 className="w-5 h-5 animate-spin mr-2" />
-            Carregando preferências...
+            Loading preferences...
           </div>
         </PageShell>
       </DashboardLayout>
@@ -133,7 +133,7 @@ export default function SettingsPage() {
       <DashboardLayout>
         <PageShell>
           <div className="text-center py-24 text-muted-foreground text-sm">
-            Faça login para acessar as configurações.
+            Sign in to access settings.
           </div>
         </PageShell>
       </DashboardLayout>
@@ -144,28 +144,28 @@ export default function SettingsPage() {
     <DashboardLayout>
       <PageShell>
         <div>
-          <h1 className="text-lg font-semibold text-foreground">Configurações</h1>
+          <h1 className="text-lg font-semibold text-foreground">Settings</h1>
           <p className="text-sm text-muted-foreground mt-0.5">
-            Personalize a aparência do dashboard. Essas preferências são salvas
-            na sua conta e aplicadas sempre que você fizer login.
+            Customize the dashboard appearance. These preferences are saved to
+            your account and applied whenever you sign in.
           </p>
         </div>
 
         {/* Theme customization */}
         <Section
-          title="Tema"
-          description="Ajuste as cores principais do dashboard"
+          title="Theme"
+          description="Adjust the dashboard primary colors"
           actions={
             <Button variant="outline" size="sm" onClick={resetColors}>
               <RotateCcw className="w-3.5 h-3.5 mr-1.5" />
-              Restaurar padrão
+              Reset to default
             </Button>
           }
         >
           <div className="rounded-lg border border-border bg-card p-4">
             <div className="flex items-center gap-2 mb-4 text-sm font-medium text-foreground">
               <Palette className="w-4 h-4 text-primary" />
-              Cores
+              Colors
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {THEME_COLOR_VARS.map(({ key, label }) => (
@@ -192,15 +192,15 @@ export default function SettingsPage() {
         </Section>
 
         {/* Font customization */}
-        <Section title="Fonte" description="Escolha a família e o tamanho da fonte do texto">
+        <Section title="Font" description="Choose the font family and text size">
           <div className="rounded-lg border border-border bg-card p-4">
             <div className="flex items-center gap-2 mb-4 text-sm font-medium text-foreground">
               <Type className="w-4 h-4 text-primary" />
-              Texto
+              Text
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label className="text-xs text-muted-foreground">Família da fonte</Label>
+                <Label className="text-xs text-muted-foreground">Font family</Label>
                 <Select
                   value={prefs.font_family}
                   onValueChange={(value) => setPrefs((prev) => ({ ...prev, font_family: value as UserPreferences['font_family'] }))}
@@ -219,7 +219,7 @@ export default function SettingsPage() {
               </div>
 
               <div className="space-y-1.5">
-                <Label className="text-xs text-muted-foreground">Tamanho da fonte</Label>
+                <Label className="text-xs text-muted-foreground">Font size</Label>
                 <Select
                   value={prefs.font_size}
                   onValueChange={(value) => setPrefs((prev) => ({ ...prev, font_size: value as UserPreferences['font_size'] }))}
@@ -241,12 +241,12 @@ export default function SettingsPage() {
         </Section>
 
         {/* Notifications */}
-        <Section title="Notificações" description="Controle os alertas dentro do dashboard">
+        <Section title="Notifications" description="Control alerts inside the dashboard">
           <div className="rounded-lg border border-border bg-card p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-sm font-medium text-foreground">
                 <Bell className="w-4 h-4 text-primary" />
-                Notificações no dashboard
+                Dashboard notifications
               </div>
               <Switch
                 checked={prefs.notifications_enabled}
@@ -254,7 +254,7 @@ export default function SettingsPage() {
               />
             </div>
             <p className="text-xs text-muted-foreground mt-2">
-              Quando desativado, o sininho de notificações e os alertas dentro do dashboard ficam ocultos para você.
+              When disabled, the notification bell and dashboard alerts are hidden for you.
             </p>
           </div>
         </Section>
@@ -263,9 +263,9 @@ export default function SettingsPage() {
         <div className="flex items-center gap-3 pt-2">
           <Button onClick={handleSave} disabled={saving}>
             {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
-            Salvar alterações
+            Save changes
           </Button>
-          {saved && <span className="text-xs text-success-green">Preferências salvas!</span>}
+          {saved && <span className="text-xs text-success-green">Preferences saved!</span>}
         </div>
       </PageShell>
     </DashboardLayout>
