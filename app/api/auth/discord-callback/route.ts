@@ -1,7 +1,23 @@
+/**
+ * Place at: app/api/auth/discord-callback/route.ts
+ *
+ * Changes from the original:
+ *  - The session cookie is now created with `createSessionToken()`
+ *    (signed with SESSION_SECRET) instead of plain JSON.stringify().
+ *    This stops users from editing their own session cookie to escalate
+ *    privileges (e.g. setting dashboardRole to "owner").
+ *  - Honors the `state` param (set by the login page from `?from=`) to
+ *    send the user back to the page they were trying to reach, validated
+ *    with `isSafeRedirectPath` to avoid open redirects.
+ */
+
 import { NextRequest, NextResponse } from 'next/server'
 import { ROLE_CONFIG } from '@/lib/constants'
 import { getSupabaseAdmin } from '@/lib/supabase'
+import { createSessionToken, SESSION_MAX_AGE_SECONDS } from '@/lib/session-token'
+import { isSafeRedirectPath } from '@/lib/utils'
 import type { DashboardRole } from '@/types'
+import type { SessionUser } from '@/lib/session'
 
 const DISCORD_TOKEN_URL = 'https://discord.com/api/oauth2/token'
 const DISCORD_API = 'https://discord.com/api/v10'
@@ -18,6 +34,7 @@ const VALID_ROLES: DashboardRole[] = [
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
   const code = searchParams.get('code')
+  const state = searchParams.get('state')
 
   if (!code) {
     return NextResponse.redirect(new URL('/login?error=access_denied', req.url))
@@ -98,7 +115,7 @@ export async function GET(req: NextRequest) {
         dashboard_role: dashboardRole,
       })
 
-    const session = {
+    const session: SessionUser = {
       discordId: user.id,
       username: user.username,
       globalName: user.global_name ?? null,
@@ -108,12 +125,16 @@ export async function GET(req: NextRequest) {
       issuedAt: Date.now(),
     }
 
-    const response = NextResponse.redirect(new URL('/', req.url))
-    response.cookies.set('session', JSON.stringify(session), {
+    // `state` carries the page the user originally tried to open
+    // (set by app/login/page.tsx from its `?from=` query param).
+    const redirectTarget = isSafeRedirectPath(state) ? state : '/'
+
+    const response = NextResponse.redirect(new URL(redirectTarget, req.url))
+    response.cookies.set('session', createSessionToken(session), {
       httpOnly: false,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 60 * 60 * 8,
+      maxAge: SESSION_MAX_AGE_SECONDS,
       path: '/',
     })
 

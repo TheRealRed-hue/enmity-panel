@@ -1,3 +1,8 @@
+/**
+ * Place at: lib/utils.ts (this is the FULL file — replace the existing one,
+ * the only addition is `isSafeRedirectPath` at the bottom)
+ */
+
 import { clsx, type ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
 
@@ -31,4 +36,16 @@ export function formatDuration(seconds: number): string {
   if (seconds < 3600) return `${Math.floor(seconds / 60)}m`
   if (seconds < 86400) return `${Math.floor(seconds / 3600)}h`
   return `${Math.floor(seconds / 86400)}d`
+}
+
+/**
+ * Returns true if `path` is a safe same-site redirect target —
+ * a relative path starting with a single `/` (not `//`, which a
+ * browser would treat as protocol-relative and send the user off-site).
+ *
+ * Used to validate the OAuth `state` param / `from` query param before
+ * redirecting a user back to where they came from after login.
+ */
+export function isSafeRedirectPath(path: string | null | undefined): path is string {
+  return !!path && path.startsWith('/') && !path.startsWith('//')
 }
