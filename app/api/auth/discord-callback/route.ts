@@ -1,14 +1,11 @@
 /**
  * Place at: app/api/auth/discord-callback/route.ts
  *
- * Changes from the original:
- *  - The session cookie is now created with `createSessionToken()`
- *    (signed with SESSION_SECRET) instead of plain JSON.stringify().
- *    This stops users from editing their own session cookie to escalate
- *    privileges (e.g. setting dashboardRole to "owner").
- *  - Honors the `state` param (set by the login page from `?from=`) to
- *    send the user back to the page they were trying to reach, validated
- *    with `isSafeRedirectPath` to avoid open redirects.
+ * Only change from the previous version: avatar resolution.
+ *  - Custom avatars now respect animated hashes (a_... → .gif)
+ *  - Users WITHOUT a custom avatar now get Discord's default avatar
+ *    (based on user id / discriminator) instead of `null`, so the
+ *    sidebar/profile menu always shows a real image instead of initials.
  */
 
 import { NextRequest, NextResponse } from 'next/server'
@@ -30,6 +27,33 @@ const VALID_ROLES: DashboardRole[] = [
   'moderator',
   'trial_moderator',
 ]
+
+interface DiscordUser {
+  id: string
+  username: string
+  global_name: string | null
+  avatar: string | null
+  discriminator?: string
+}
+
+/**
+ * Always returns a usable avatar URL:
+ *  - Custom avatar (animated → .gif, static → .png)
+ *  - Otherwise Discord's default avatar for that account
+ */
+function getAvatarUrl(user: DiscordUser): string {
+  if (user.avatar) {
+    const ext = user.avatar.startsWith('a_') ? 'gif' : 'png'
+    return `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.${ext}?size=128`
+  }
+
+  const index =
+    user.discriminator && user.discriminator !== '0'
+      ? Number(user.discriminator) % 5
+      : Number(BigInt(user.id) >> 22n) % 6
+
+  return `https://cdn.discordapp.com/embed/avatars/${index}.png`
+}
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
@@ -61,7 +85,7 @@ export async function GET(req: NextRequest) {
     })
 
     if (!userRes.ok) throw new Error('user_fetch_failed')
-    const user = await userRes.json()
+    const user: DiscordUser = await userRes.json()
 
     const bodyPayload = {
       message: `discordoauth.${user.id}.${process.env.BOT_API_SECRET!}`
@@ -84,9 +108,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.redirect(new URL('/login?error=no_permission', req.url))
     }
 
-    const avatarUrl = user.avatar
-      ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`
-      : null
+    const avatarUrl = getAvatarUrl(user)
 
     const admin = getSupabaseAdmin()
 

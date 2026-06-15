@@ -1,0 +1,184 @@
+/**
+ * Place at: app/cosmetics.css
+ *
+ * Then add ONE line near the top of app/globals.css (after the existing
+ * @import lines):
+ *
+ *   @import "./cosmetics.css";
+ *
+ * Used by lib/cosmetics.ts (catalog) and components/profile-nav-menu.tsx.
+ *
+ * Markup contract for an avatar with a frame:
+ *
+ *   <div class="avatar-frame <frame-class>" style="width:40px;height:40px">
+ *     <div class="avatar-frame-inner"> ... img or initials ... </div>
+ *   </div>
+ *
+ * Markup contract for a name with an effect:
+ *
+ *   <span class="<name-effect-class>">Username</span>
+ */
+
+/* ── Avatar frame base ──────────────────────────────────────────────── */
+
+.avatar-frame {
+  position: relative;
+  display: inline-flex;
+  border-radius: 9999px;
+  flex-shrink: 0;
+}
+
+.avatar-frame-inner {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+/* ── Frame: Solid Ring ──────────────────────────────────────────────── */
+
+.frame-solid {
+  box-shadow: 0 0 0 2px var(--primary);
+}
+
+/* ── Frame: Aurora Spin (rotating gradient ring) ───────────────────── */
+
+.frame-gradient-spin {
+  padding: 3px;
+  overflow: hidden;
+}
+
+.frame-gradient-spin::before {
+  content: "";
+  position: absolute;
+  inset: -60%;
+  z-index: 0;
+  background: conic-gradient(
+    from 0deg,
+    var(--primary),
+    var(--shrine-gold),
+    var(--glow-teal),
+    var(--primary)
+  );
+  animation: frameSpin 4s linear infinite;
+}
+
+@keyframes frameSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ── Frame: Pulse Glow ──────────────────────────────────────────────── */
+
+.frame-glow {
+  animation: frameGlowPulse 2.4s ease-in-out infinite;
+}
+
+@keyframes frameGlowPulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 2px var(--primary),
+      0 0 6px 0px transparent;
+  }
+  50% {
+    box-shadow:
+      0 0 0 2px var(--primary),
+      0 0 16px 4px var(--primary);
+  }
+}
+
+/* ── Frame: Angular Cut ─────────────────────────────────────────────── */
+
+.frame-angular {
+  padding: 3px;
+  border-radius: 22%;
+  background: linear-gradient(135deg, var(--primary), var(--shrine-gold));
+}
+
+.frame-angular > .avatar-frame-inner {
+  border-radius: 18%;
+}
+
+/* ── Name effect: Gradient (static) ────────────────────────────────── */
+
+.name-gradient {
+  background: linear-gradient(90deg, var(--primary), var(--shrine-gold));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* ── Name effect: Aurora Flow (animated gradient) ──────────────────── */
+
+.name-gradient-animated {
+  background: linear-gradient(
+    90deg,
+    var(--primary),
+    var(--shrine-gold),
+    var(--glow-teal),
+    var(--primary)
+  );
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: nameGradientShift 4s ease-in-out infinite;
+}
+
+@keyframes nameGradientShift {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+/* ── Name effect: Neon Glow ─────────────────────────────────────────── */
+
+.name-glow {
+  color: var(--primary);
+  animation: nameGlowPulse 2.4s ease-in-out infinite;
+}
+
+@keyframes nameGlowPulse {
+  0%,
+  100% {
+    text-shadow: 0 0 4px var(--primary);
+  }
+  50% {
+    text-shadow:
+      0 0 10px var(--primary),
+      0 0 20px var(--primary);
+  }
+}
+
+/* ── Name effect: Shimmer ───────────────────────────────────────────── */
+
+.name-shimmer {
+  background: linear-gradient(
+    110deg,
+    var(--foreground) 40%,
+    #fff 50%,
+    var(--foreground) 60%
+  );
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: nameShimmer 2.8s linear infinite;
+}
+
+@keyframes nameShimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}

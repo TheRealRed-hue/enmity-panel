@@ -1,6 +1,13 @@
 'use client'
 
+/**
+ * Place at: components/header.tsx (replaces existing file)
+ *
+ * Only change: added <ProfileNavMenu /> next to the notification bell.
+ */
+
 import { NotificationPanel } from '@/components/ui/notification-panel'
+import { ProfileNavMenu } from '@/components/profile-nav-menu'
 
 interface HeaderProps {
   title: string
@@ -27,6 +34,8 @@ export function Header({ title, subtitle, actions }: HeaderProps) {
           <span className="w-1.5 h-1.5 rounded-full bg-success-green" />
           <span className="text-[11px] text-success-green font-medium">Online</span>
         </div>
+
+        <ProfileNavMenu />
       </div>
     </header>
   )
