@@ -212,14 +212,16 @@ export default function TrainingPage() {
               {activeTab === 'tasks' && (
                 <TasksTab
                   tasks={tasks}
+                  profiles={profiles}
                   admin={admin}
+                  selectedProfile={selectedProfile}
+                  onSelectProfile={(p) => setSelectedProfile(p)}
                   onAdd={() => setShowCreateTask(true)}
                   onArchive={async (id) => {
                     await fetch(`/api/training/tasks?id=${id}`, { method: 'DELETE' })
                     load()
                   }}
                   session={session}
-                  selectedProfile={selectedProfile}
                   onRefresh={load}
                 />
               )}
