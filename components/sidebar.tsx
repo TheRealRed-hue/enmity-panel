@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import {
   LayoutDashboard, ScrollText, Bell, Users, Gavel,
   ShieldCheck, Ban, BarChart3, ChevronLeft, ChevronRight, LogOut, X, Settings,
+  GraduationCap,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useState, useEffect } from 'react'
@@ -20,6 +21,7 @@ const navigation = [
   { name: 'Verification', href: '/verification', icon: ShieldCheck },
   { name: 'Blacklist', href: '/blacklist', icon: Ban },
   { name: 'Analytics', href: '/analytics', icon: BarChart3 },
+  { name: 'Training Portal', href: '/training', icon: GraduationCap },
   { name: 'Settings', href: '/settings', icon: Settings },
 ]
 

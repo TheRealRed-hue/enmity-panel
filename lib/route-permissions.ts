@@ -21,6 +21,7 @@ export const ROUTE_PERMISSIONS: Record<string, Permission> = {
   '/blacklist': 'blacklist',
   '/logs': 'view_logs',
   '/alerts': 'view_logs',
+  // /training is open to all authenticated staff (no specific permission required)
 }
 
 /**

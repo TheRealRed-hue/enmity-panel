@@ -38,6 +38,7 @@ import {
   PinOff,
   X,
   Sparkles,
+  GraduationCap,
 } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
@@ -83,6 +84,7 @@ const navGroups: NavGroup[] = [
     items: [
       { name: 'Team', href: '/team', icon: Users },
       { name: 'Analytics', href: '/analytics', icon: BarChart3 },
+      { name: 'Training Portal', href: '/training', icon: GraduationCap },
       { name: 'Settings', href: '/settings', icon: Settings },
     ],
   },
